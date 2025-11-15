@@ -1,0 +1,48 @@
+# StoryQuest Configuration
+# Phase 2: LLM Abstraction Layer
+
+llm:
+  # Provider: "ollama", "openai", or "anthropic"
+  # Can be overridden with LLM_PROVIDER environment variable
+  provider: "ollama"
+
+  # Ollama Configuration (Local LLM)
+  ollama:
+    base_url: "http://localhost:11434"
+    model: "llama3.2:3b"
+    # Other options: "llama3.2:1b", "mistral", "phi3", etc.
+
+  # OpenAI Configuration (Cloud LLM)
+  openai:
+    # Set via OPENAI_API_KEY environment variable
+    api_key: "${OPENAI_API_KEY}"
+    model: "gpt-4o-mini"
+    # Other options: "gpt-4o", "gpt-4-turbo", etc.
+
+  # Anthropic Configuration (Cloud LLM)
+  anthropic:
+    # Set via ANTHROPIC_API_KEY environment variable
+    api_key: "${ANTHROPIC_API_KEY}"
+    model: "claude-3-5-haiku-20241022"
+    # Other options: "claude-3-5-sonnet-20241022", etc.
+
+# Story Engine Configuration
+story:
+  max_turns: 50
+  themes:
+    - "magical_forest"
+    - "space_adventure"
+    - "underwater_quest"
+    - "dinosaur_discovery"
+    - "castle_quest"
+    - "robot_city"
+  default_age_range: "6-12"
+
+# Database Configuration
+database:
+  # SQLite (local development)
+  url: "sqlite:///./storyquest.db"
+  # PostgreSQL (production)
+  # url: "postgresql://user:password@localhost:5432/storyquest"
+  # Can be overridden with DATABASE_URL environment variable
+  echo: false
