@@ -96,10 +96,14 @@ export interface StreamEvent {
   session_id?: string;
   content?: string;
   choices?: Array<{ choice_id: string; text: string }>;
+  scene_text?: string;
+  story_summary?: string;
   metadata?: {
     theme: string;
     turns: number;
     session_id: string;
+    max_turns?: number;
+    is_finished?: boolean;
   };
   message?: string;
 }
@@ -107,7 +111,7 @@ export interface StreamEvent {
 export interface StreamCallbacks {
   onSessionStart?: (sessionId: string) => void;
   onTextChunk?: (chunk: string) => void;
-  onComplete?: (choices: any[], metadata: any) => void;
+  onComplete?: (choices: any[], metadata: any, sceneText?: string, storySummary?: string) => void;
   onError?: (error: string) => void;
 }
 
@@ -175,7 +179,7 @@ export async function startStoryStream(
 
               case 'complete':
                 if (event.choices && event.metadata && callbacks.onComplete) {
-                  callbacks.onComplete(event.choices, event.metadata);
+                  callbacks.onComplete(event.choices, event.metadata, event.scene_text, event.story_summary);
                 }
                 break;
 
@@ -258,7 +262,7 @@ export async function continueStoryStream(
 
               case 'complete':
                 if (event.choices && event.metadata && callbacks.onComplete) {
-                  callbacks.onComplete(event.choices, event.metadata);
+                  callbacks.onComplete(event.choices, event.metadata, event.scene_text, event.story_summary);
                 }
                 break;
 

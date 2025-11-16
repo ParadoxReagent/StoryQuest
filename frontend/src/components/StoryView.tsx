@@ -30,6 +30,8 @@ export const StoryView: React.FC<StoryViewProps> = ({
   streamingText = '',
   isStreaming = false,
 }) => {
+  const isFinished = story.metadata?.is_finished;
+  const maxTurns = story.metadata?.max_turns;
   const themeEmojis: Record<string, string> = {
     space_adventure: '🚀',
     magical_forest: '🌲',
@@ -43,6 +45,12 @@ export const StoryView: React.FC<StoryViewProps> = ({
     ? themeEmojis[story.metadata.theme] || '✨'
     : '✨';
 
+  const turnLabel = story.metadata
+    ? isFinished
+      ? `Completed in ${story.metadata.turns} turn${story.metadata.turns === 1 ? '' : 's'}`
+      : `Turn ${story.metadata.turns + 1}${maxTurns ? ` / ${maxTurns}` : ''}`
+    : '';
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Story Header */}
@@ -55,9 +63,11 @@ export const StoryView: React.FC<StoryViewProps> = ({
                 <h2 className="font-kid text-2xl font-bold">
                   {story.metadata.theme.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </h2>
-                <p className="font-kid text-primary-100">
-                  Turn {story.metadata.turns + 1}
-                </p>
+                {turnLabel && (
+                  <p className="font-kid text-primary-100">
+                    {turnLabel}
+                  </p>
+                )}
               </div>
             </div>
             <div className="text-right">
@@ -73,17 +83,17 @@ export const StoryView: React.FC<StoryViewProps> = ({
       {/* Current Scene */}
       <div className="bg-white p-8 rounded-2xl border-4 border-primary-300 shadow-xl">
         <div className="prose prose-lg max-w-none">
-          <p className="font-kid text-xl leading-relaxed text-gray-800 whitespace-pre-wrap">
+          <p
+            key={isStreaming ? streamingText : story.current_scene.scene_id}
+            className="font-kid text-xl leading-relaxed text-gray-800 whitespace-pre-wrap fade-in-text"
+          >
             {isStreaming ? streamingText : story.current_scene.text}
-            {isStreaming && (
-              <span className="inline-block w-2 h-6 ml-1 bg-primary-600 animate-pulse"></span>
-            )}
           </p>
         </div>
       </div>
 
       {/* Loading Indicator */}
-      {disabled && (
+      {disabled && !isFinished && (
         <div className="bg-yellow-50 border-4 border-yellow-300 rounded-2xl p-6 shadow-lg">
           <div className="flex items-center justify-center gap-3">
             <div className="animate-spin rounded-full h-8 w-8 border-4 border-yellow-500 border-t-transparent"></div>
@@ -94,8 +104,17 @@ export const StoryView: React.FC<StoryViewProps> = ({
         </div>
       )}
 
+      {/* Ending message */}
+      {isFinished && (
+        <div className="bg-gradient-to-r from-primary-100 to-primary-200 border-4 border-primary-300 rounded-2xl p-6 shadow-lg text-center">
+          <p className="font-kid text-xl text-primary-800">
+            The adventure has wrapped up with a happy ending! Start a new story to explore another world.
+          </p>
+        </div>
+      )}
+
       {/* Choices */}
-      {!disabled && !isStreaming && (
+      {!disabled && !isStreaming && !isFinished && (
         <div className="space-y-4">
           <h3 className="font-kid text-2xl font-bold text-center text-primary-700">
             What would you like to do? 🤔

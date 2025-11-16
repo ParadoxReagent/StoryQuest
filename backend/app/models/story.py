@@ -28,6 +28,8 @@ class StoryMetadata(BaseModel):
     turns: int = Field(default=0, description="Number of turns taken in this story")
     theme: str = Field(..., description="The theme of the story (e.g., 'magical_forest', 'space_adventure')")
     age_range: str = Field(..., description="Target age range (e.g., '6-8', '9-12')")
+    max_turns: int = Field(default=15, description="Maximum number of turns for this story")
+    is_finished: bool = Field(default=False, description="Whether the story has reached its ending")
 
 
 class StoryState(BaseModel):
@@ -78,5 +80,5 @@ class StoryResponse(BaseModel):
 class LLMStoryResponse(BaseModel):
     """The expected response format from the LLM."""
     scene_text: str = Field(..., description="The narrative text for the next scene")
-    choices: List[str] = Field(..., description="List of 3 choice options")
+    choices: Optional[List[str]] = Field(default=None, description="List of 3 choice options (optional for final turn)")
     story_summary_update: str = Field(..., description="Updated story summary")

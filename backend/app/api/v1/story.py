@@ -24,7 +24,7 @@ from app.services.llm_factory import create_llm_provider
 from app.services.prompts import StoryPrompts
 from app.services.safety_filter import SafetyFilter
 from app.services.safety_filter_enhanced import EnhancedSafetyFilter
-from app.services.story_engine import StoryEngine
+from app.services.story_engine import StoryEngine, compute_max_turns
 from app.services.rate_limiter import get_rate_limiter, RateLimitExceeded
 
 logger = logging.getLogger(__name__)
@@ -245,6 +245,7 @@ async def start_story_stream(
 
             # Create session in database
             session_id = uuid4()
+            max_turns = compute_max_turns(session_id)
             db_session_model = SessionModel(
                 id=session_id,
                 player_name=request.player_name,
@@ -295,23 +296,30 @@ async def start_story_stream(
                     for i, choice_text in enumerate(llm_response.choices)
                 ]
 
+                story_summary = llm_response.story_summary_update or ""
+
+                # Generate a scene id consistent with StoryEngine
+                scene_id = f"scene_{session_id}_0"
+
                 # Save to database
                 from app.db.models import StoryTurn
                 turn = StoryTurn(
                     id=uuid4(),
                     session_id=session_id,
-                    turn_number=1,
+                    turn_number=0,
                     scene_text=llm_response.scene_text,
-                    choices_json=json.dumps(choices),
-                    story_summary=llm_response.story_summary_update or ""
+                    scene_id=scene_id,
+                    player_choice=None,
+                    custom_input=None,
+                    story_summary=story_summary
                 )
                 db.add(turn)
-                db_session_model.turns = 1
+                db_session_model.turns = 0
                 db_session_model.updated_at = turn.created_at
                 db.commit()
 
                 # Send final event with metadata
-                yield f"data: {json.dumps({'type': 'complete', 'choices': choices, 'metadata': {'theme': request.theme, 'turns': 0, 'session_id': str(session_id)}})}\n\n"
+                yield f"data: {json.dumps({'type': 'complete', 'choices': choices, 'metadata': {'theme': request.theme, 'age_range': request.age_range, 'turns': 0, 'session_id': str(session_id), 'max_turns': max_turns, 'is_finished': False}, 'scene_text': llm_response.scene_text, 'story_summary': story_summary})}\n\n"
 
             except Exception as e:
                 logger.error(f"Failed to parse streamed response: {e}")
@@ -389,16 +397,24 @@ async def continue_story_stream(
                 yield f"data: {json.dumps({'type': 'error', 'message': 'Session is no longer active'})}\n\n"
                 return
 
+            max_turns = compute_max_turns(db_session_model.id)
+            next_turn_number = db_session_model.turns + 1
+            turns_remaining = max_turns - next_turn_number
+
+            if db_session_model.turns >= max_turns:
+                yield f"data: {json.dumps({'type': 'error', 'message': 'This story has already reached its ending.'})}\n\n"
+                return
+
             # Get choice text
             choice_text = request.choice_text if request.choice_text else request.custom_input
 
             # Generate continuation prompt
             prompt = prompts.get_story_continuation_prompt(
-                player_name=db_session_model.player_name,
                 age_range=db_session_model.age_range,
-                theme=db_session_model.theme,
                 story_summary=request.story_summary or "",
-                player_choice=choice_text or ""
+                player_choice=choice_text or "",
+                player_name=db_session_model.player_name,
+                turns_remaining=turns_remaining
             )
             system_message = prompts.get_system_message(db_session_model.age_range)
 
@@ -427,27 +443,33 @@ async def continue_story_stream(
                         "text": choice_text
                     }
                     for i, choice_text in enumerate(llm_response.choices)
-                ]
+                ] if next_turn_number < max_turns else []
+
+                new_turn_number = next_turn_number
+                scene_id = f"scene_{request.session_id}_{new_turn_number}"
+                updated_summary = llm_response.story_summary_update or request.story_summary or ""
+                is_finished = new_turn_number >= max_turns
 
                 # Save to database
                 from app.db.models import StoryTurn
-                new_turn_number = db_session_model.turns + 1
                 turn = StoryTurn(
                     id=uuid4(),
                     session_id=request.session_id,
                     turn_number=new_turn_number,
                     scene_text=llm_response.scene_text,
-                    player_choice=choice_text,
-                    choices_json=json.dumps(choices),
-                    story_summary=llm_response.story_summary_update or request.story_summary or ""
+                    scene_id=scene_id,
+                    player_choice=request.choice_id,
+                    custom_input=request.custom_input,
+                    story_summary=updated_summary
                 )
                 db.add(turn)
                 db_session_model.turns = new_turn_number
                 db_session_model.updated_at = turn.created_at
+                db_session_model.is_active = not is_finished
                 db.commit()
 
                 # Send final event
-                yield f"data: {json.dumps({'type': 'complete', 'choices': choices, 'metadata': {'theme': db_session_model.theme, 'turns': new_turn_number, 'session_id': str(request.session_id)}})}\n\n"
+                yield f"data: {json.dumps({'type': 'complete', 'choices': choices, 'metadata': {'theme': db_session_model.theme, 'age_range': db_session_model.age_range, 'turns': new_turn_number, 'session_id': str(request.session_id), 'max_turns': max_turns, 'is_finished': is_finished}, 'scene_text': llm_response.scene_text, 'story_summary': updated_summary})}\n\n"
 
             except Exception as e:
                 logger.error(f"Failed to parse streamed response: {e}")

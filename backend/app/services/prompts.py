@@ -14,7 +14,8 @@ class StoryPrompts:
         age_range: str,
         story_summary: str,
         player_choice: str,
-        player_name: str = "the player"
+        player_name: str = "the player",
+        turns_remaining: int | None = None
     ) -> str:
         """
         Generate a prompt for continuing the story.
@@ -29,6 +30,89 @@ class StoryPrompts:
         Returns:
             Formatted prompt string
         """
+        wrap_guidance = ""
+        is_final_turn = False
+        if turns_remaining is not None:
+            if turns_remaining <= 0:
+                is_final_turn = True
+                # For final turn, use completely different prompt structure
+                return f"""⚠️⚠️⚠️ FINAL TURN - STORY ENDING ⚠️⚠️⚠️
+
+You are writing THE FINAL SCENE of a children's story for ages {age_range}.
+This is the LAST turn. The story ENDS after this scene. There are NO more turns.
+
+STORY SUMMARY:
+{story_summary}
+
+PLAYER'S FINAL ACTION:
+{player_name} chose: "{player_choice}"
+
+🎯 YOUR PRIMARY MISSION 🎯
+Write a COMPLETE, SATISFYING ENDING that wraps up the entire adventure.
+
+MANDATORY ENDING STRUCTURE (Follow this exactly):
+1. First 1-2 sentences: Show the result of the player's final action "{player_choice}"
+2. Next 2-3 sentences: CONCLUDE the story with:
+   - What {player_name} accomplished overall
+   - How {player_name} feels (proud, happy, satisfied)
+   - A sense that the adventure is COMPLETE and OVER
+   - Use words like: "finally", "at last", "completed", "ended", "concluded", "adventure was over", "journey was complete"
+
+❌ ABSOLUTELY FORBIDDEN - DO NOT DO THESE ❌
+- NO questions (like "What will you do?" or "What do you think?")
+- NO open-ended situations that need resolution
+- NO hints about future adventures or "tomorrow" or "next time"
+- NO "about to", "going to", "will", "soon", "later"
+- NO new problems, mysteries, or discoveries
+- NO asking the player/character anything
+- NO conversations that continue beyond this scene
+
+✅ GOOD ENDING EXAMPLES:
+"The robot happily showed you its favorite gear, a shiny golden one that sparkled beautifully. You smiled, feeling so proud of all the wonderful friends you had made today. The space adventure had been absolutely perfect, and now it was time to head home. What an amazing journey it had been!"
+
+"Sir Reginald smiled and pointed to a cloud shaped like a fluffy ice cream cone. 'That one is my favorite!' he said cheerfully. {player_name} laughed with joy, feeling so happy about this wonderful cloud-watching adventure. Together, they had explored, laughed, and made beautiful memories. The adventure was complete, and {player_name} felt grateful for every magical moment."
+
+❌ BAD ENDING EXAMPLES (NEVER DO THIS):
+"Sir Reginald asked, 'What shape do you see?' He waited for your answer." ← WRONG: Asking questions, waiting for response
+"You were about to explore the next cave when..." ← WRONG: Suggesting continuation
+"Tomorrow you would return to visit again!" ← WRONG: Future plans
+
+SAFETY RULES:
+- Only positive, happy, cheerful content
+- Age-appropriate vocabulary for {age_range}
+- No violence, scary content, or negativity
+- G-rated and encouraging
+
+Respond in this JSON format (NO choices field):
+{{
+  "scene_text": "The final scene that ENDS the story completely...",
+  "story_summary_update": "Final summary of the completed adventure"
+}}"""
+            elif turns_remaining == 1:
+                wrap_guidance = (
+                    f"\n\n⚠️ PENULTIMATE TURN - ONE TURN LEFT ⚠️\n"
+                    f"The next turn is the FINAL turn. After that, the story is OVER.\n\n"
+                    f"REQUIREMENTS FOR THIS TURN:\n"
+                    f"1. BEGIN wrapping up the adventure - this should feel like the climax\n"
+                    f"2. RESOLVE any remaining plot threads or questions\n"
+                    f"3. SHOW {player_name} succeeding or completing their main goal\n"
+                    f"4. The 3 choices you provide should all lead directly to a satisfying conclusion\n"
+                    f"5. Each choice should be a way to FINISH the story, not continue it\n\n"
+                    f"FORBIDDEN:\n"
+                    f"❌ NO new characters, locations, or major discoveries\n"
+                    f"❌ NO new quests or challenges that can't be resolved in one turn\n"
+                    f"❌ NO complex problems that need solving\n\n"
+                    f"EXAMPLE CHOICES (steering toward ending):\n"
+                    f"- \"Celebrate your success with your friends!\"\n"
+                    f"- \"Take one last happy look around before heading home\"\n"
+                    f"- \"Thank everyone who helped you on this adventure\""
+                )
+            elif turns_remaining <= 4:
+                wrap_guidance = (
+                    f"\n\nENDING SOON: Only {turns_remaining} turns remain. Begin wrapping up the adventure, tying loose ends, and guiding toward a happy ending. "
+                    "Avoid introducing new characters or locations; focus on resolving what already exists and setting up the finale."
+                )
+
         return f"""You are a creative, kid-friendly storyteller for children aged {age_range}.
 
 STORY SO FAR:
@@ -53,13 +137,14 @@ CONTENT GUIDELINES:
 - Start by showing the immediate result of the player's chosen action: "{player_choice}"
 - Write 2-4 sentences describing what happens as a consequence of this specific choice
 - The scene MUST directly relate to and follow from "{player_choice}"
-- Generate exactly 3 fun, age-appropriate choices for what to do next
+{'' if is_final_turn else '- Generate exactly 3 fun, age-appropriate choices for what to do next'}
 - Use cheerful, playful, encouraging language
 - Include learning opportunities (curiosity, problem-solving, kindness)
 - Make {player_name} feel heroic, capable, and valued
 - Focus on friendship, discovery, creativity, and problem-solving
 - Keep the tone light, positive, and uplifting
 - No conflicts - only friendly cooperation and fun challenges
+{wrap_guidance}
 
 EXAMPLES OF GOOD CONTINUITY:
 If player chose "Talk to the friendly robot":
@@ -80,12 +165,12 @@ EXAMPLES TO AVOID:
 
 Respond in this JSON format:
 {{
-  "scene_text": "What happens next as a direct result of the player's choice...",
+  "scene_text": "What happens next as a direct result of the player's choice...",{'' if is_final_turn else '''
   "choices": [
     "Choice 1",
     "Choice 2",
     "Choice 3"
-  ],
+  ],'''}
   "story_summary_update": "Brief update to story summary including the player's action and what happened"
 }}"""
 

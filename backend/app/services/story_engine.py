@@ -28,6 +28,11 @@ from app.services.safety_filter import SafetyFilter
 logger = logging.getLogger(__name__)
 
 
+def compute_max_turns(session_id: UUID) -> int:
+    """Deterministically pick a max turn count between 8 and 15 for a session."""
+    return 8 + (session_id.int % 8)
+
+
 class StoryEngine:
     """
     Core story engine that orchestrates LLM calls and story logic.
@@ -81,6 +86,7 @@ class StoryEngine:
 
         # Create session in database
         session_id = uuid4()
+        max_turns = compute_max_turns(session_id)
         db_session_model = SessionModel(
             id=session_id,
             player_name=player_name,
@@ -113,7 +119,7 @@ class StoryEngine:
 
         choices = [
             Choice(choice_id=f"c{i+1}", text=choice_text)
-            for i, choice_text in enumerate(llm_response.choices)
+            for i, choice_text in enumerate(llm_response.choices or [])
         ]
 
         # Save first turn to database
@@ -133,7 +139,9 @@ class StoryEngine:
         metadata = StoryMetadata(
             turns=0,
             theme=theme,
-            age_range=age_range
+            age_range=age_range,
+            max_turns=max_turns,
+            is_finished=False
         )
 
         logger.info(f"Story started successfully: session_id={session_id}")
@@ -183,9 +191,11 @@ class StoryEngine:
         if not db_session_model.is_active:
             raise ValueError(f"Session is no longer active: {session_id}")
 
+        max_turns = compute_max_turns(session_id)
+
         # Check turn limit
-        if db_session_model.turns >= self.max_turns:
-            raise ValueError(f"Session has reached maximum turns ({self.max_turns})")
+        if db_session_model.turns >= max_turns:
+            raise ValueError(f"Session has reached maximum turns ({max_turns})")
 
         # Determine player action
         if custom_input:
@@ -210,11 +220,13 @@ class StoryEngine:
             raise ValueError("Either choice_id or custom_input must be provided")
 
         # Generate continuation
+        turns_remaining = max_turns - (db_session_model.turns + 1)
         prompt = self.prompts.get_story_continuation_prompt(
             age_range=db_session_model.age_range,
             story_summary=story_summary,
             player_choice=player_action,
-            player_name=db_session_model.player_name
+            player_name=db_session_model.player_name,
+            turns_remaining=turns_remaining
         )
         system_message = self.prompts.get_system_message(db_session_model.age_range)
 
@@ -222,7 +234,8 @@ class StoryEngine:
         llm_response = await self._call_llm_with_retry(
             prompt=prompt,
             system_message=system_message,
-            theme=db_session_model.theme
+            theme=db_session_model.theme,
+            turns_remaining=turns_remaining
         )
 
         # Update turn count
@@ -238,10 +251,14 @@ class StoryEngine:
             timestamp=datetime.utcnow()
         )
 
-        choices = [
-            Choice(choice_id=f"c{i+1}", text=choice_text)
-            for i, choice_text in enumerate(llm_response.choices)
-        ]
+        # Create choices only if not at max turns and LLM provided choices
+        if new_turn_number < max_turns and llm_response.choices:
+            choices = [
+                Choice(choice_id=f"c{i+1}", text=choice_text)
+                for i, choice_text in enumerate(llm_response.choices)
+            ]
+        else:
+            choices = []
 
         # Update story summary
         updated_summary = llm_response.story_summary_update
@@ -258,12 +275,20 @@ class StoryEngine:
         )
         db_session.add(story_turn)
         db_session.commit()
+        db_session.refresh(db_session_model)
+
+        is_finished = new_turn_number >= max_turns
+        if is_finished:
+            db_session_model.is_active = False
+            db_session.commit()
 
         # Create metadata
         metadata = StoryMetadata(
             turns=new_turn_number,
             theme=db_session_model.theme,
-            age_range=db_session_model.age_range
+            age_range=db_session_model.age_range,
+            max_turns=max_turns,
+            is_finished=is_finished
         )
 
         logger.info(f"Story continued successfully: session_id={session_id}, turn={new_turn_number}")
@@ -357,7 +382,8 @@ class StoryEngine:
         self,
         prompt: str,
         system_message: str,
-        theme: str
+        theme: str,
+        turns_remaining: int | None = None
     ) -> LLMStoryResponse:
         """
         Call LLM with retry logic and fallback handling.
@@ -366,6 +392,7 @@ class StoryEngine:
             prompt: The prompt to send
             system_message: System message for the LLM
             theme: Story theme (for fallback)
+            turns_remaining: Number of turns remaining (None if unlimited)
 
         Returns:
             LLMStoryResponse
@@ -402,7 +429,8 @@ class StoryEngine:
                     logger.warning(f"LLM output validation failed (attempt {attempt + 1}/{self.max_retries})")
                     # Use fallback on last attempt
                     if attempt == self.max_retries - 1:
-                        return self._get_fallback_llm_response(theme)
+                        is_final_turn = turns_remaining is not None and turns_remaining <= 0
+                        return self._get_fallback_llm_response(theme, is_final_turn)
 
             except Exception as e:
                 last_exception = e
@@ -415,14 +443,16 @@ class StoryEngine:
 
         # All retries failed, use fallback
         logger.error(f"All LLM retries failed, using fallback response. Last error: {last_exception}")
-        return self._get_fallback_llm_response(theme)
+        is_final_turn = turns_remaining is not None and turns_remaining <= 0
+        return self._get_fallback_llm_response(theme, is_final_turn)
 
-    def _get_fallback_llm_response(self, theme: str) -> LLMStoryResponse:
+    def _get_fallback_llm_response(self, theme: str, is_final_turn: bool = False) -> LLMStoryResponse:
         """
         Get a safe fallback response when LLM fails.
 
         Args:
             theme: Story theme
+            is_final_turn: Whether this is the final turn
 
         Returns:
             LLMStoryResponse with safe fallback content
@@ -430,6 +460,6 @@ class StoryEngine:
         scene_text, choices = self.safety.get_fallback_response(theme)
         return LLMStoryResponse(
             scene_text=scene_text,
-            choices=choices,
+            choices=None if is_final_turn else choices,
             story_summary_update="The adventure continues in a safe and peaceful way."
         )

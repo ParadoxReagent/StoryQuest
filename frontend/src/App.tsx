@@ -19,6 +19,28 @@ interface Turn {
   turn_number: number;
 }
 
+const createScene = (text: string): StoryResponse['current_scene'] => ({
+  scene_id:
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `scene-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  text,
+  timestamp: new Date().toISOString(),
+});
+
+const extractSceneTextFromStream = (buffer: string): string | null => {
+  // Try to grab the scene_text value from streaming JSON chunks
+  const match = buffer.match(/"scene_text"\s*:\s*"((?:\\.|[^"\\])*)/);
+  if (!match) return null;
+
+  try {
+    return JSON.parse(`"${match[1]}"`);
+  } catch {
+    // Fallback: unescape basic sequences manually if JSON.parse fails mid-stream
+    return match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"');
+  }
+};
+
 const getErrorMessage = (error: unknown): string => {
   if (typeof error === 'object' && error !== null) {
     const maybeResponse = (error as { response?: { data?: { detail?: string } } }).response;
@@ -57,6 +79,8 @@ function App() {
       let sessionId = '';
       let finalChoices: any[] = [];
       let finalMetadata: any = null;
+      let finalSceneText = '';
+      let finalStorySummary = '';
       let accumulatedText = '';
 
       await startStoryStream(
@@ -68,11 +92,14 @@ function App() {
           },
           onTextChunk: (chunk) => {
             accumulatedText += chunk;
-            setStreamingText(accumulatedText);
+            const sceneText = extractSceneTextFromStream(accumulatedText);
+            setStreamingText((prev) => sceneText ?? prev);
           },
-          onComplete: (choices, metadata) => {
+          onComplete: (choices, metadata, sceneText, storySummary) => {
             finalChoices = choices;
             finalMetadata = metadata;
+            finalSceneText = sceneText || '';
+            finalStorySummary = storySummary || '';
           },
           onError: (errorMsg) => {
             setError(errorMsg);
@@ -82,17 +109,15 @@ function App() {
       );
 
       // After streaming completes, construct the story response
-      if (finalChoices.length > 0) {
+      if (finalMetadata?.is_finished || finalChoices.length > 0) {
         const response: StoryResponse = {
           session_id: sessionId,
-          current_scene: {
-            text: accumulatedText,
-          },
+          current_scene: createScene(finalSceneText || accumulatedText),
           choices: finalChoices.map((c) => ({
             choice_id: c.choice_id,
             text: c.text,
           })),
-          story_summary: '',
+          story_summary: finalStorySummary || '',
           metadata: finalMetadata,
         };
 
@@ -118,7 +143,7 @@ function App() {
    * Continue the story with a choice
    */
   const handleChoice = async (choice: { choice_id: string; text: string }) => {
-    if (!story) return;
+    if (!story || story.metadata?.is_finished) return;
 
     setIsLoading(true);
     setError(null);
@@ -136,6 +161,8 @@ function App() {
     try {
       let finalChoices: any[] = [];
       let finalMetadata: any = null;
+      let finalSceneText = '';
+      let finalStorySummary = '';
       let accumulatedText = '';
 
       await continueStoryStream(
@@ -148,11 +175,14 @@ function App() {
         {
           onTextChunk: (chunk) => {
             accumulatedText += chunk;
-            setStreamingText(accumulatedText);
+            const sceneText = extractSceneTextFromStream(accumulatedText);
+            setStreamingText((prev) => sceneText ?? prev);
           },
-          onComplete: (choices, metadata) => {
+          onComplete: (choices, metadata, sceneText, storySummary) => {
             finalChoices = choices;
             finalMetadata = metadata;
+            finalSceneText = sceneText || '';
+            finalStorySummary = storySummary || '';
           },
           onError: (errorMsg) => {
             setError(errorMsg);
@@ -162,17 +192,15 @@ function App() {
       );
 
       // After streaming completes, update the story
-      if (finalChoices.length > 0) {
+      if (finalMetadata?.is_finished || finalChoices.length > 0) {
         const response: StoryResponse = {
           session_id: story.session_id,
-          current_scene: {
-            text: accumulatedText,
-          },
+          current_scene: createScene(finalSceneText || accumulatedText),
           choices: finalChoices.map((c) => ({
             choice_id: c.choice_id,
             text: c.text,
           })),
-          story_summary: story.story_summary,
+          story_summary: finalStorySummary || story.story_summary,
           metadata: finalMetadata,
         };
 
@@ -192,7 +220,7 @@ function App() {
    * Continue the story with custom input
    */
   const handleCustomInput = async (input: string) => {
-    if (!story) return;
+    if (!story || story.metadata?.is_finished) return;
 
     setIsLoading(true);
     setError(null);
@@ -210,6 +238,8 @@ function App() {
     try {
       let finalChoices: any[] = [];
       let finalMetadata: any = null;
+      let finalSceneText = '';
+      let finalStorySummary = '';
       let accumulatedText = '';
 
       await continueStoryStream(
@@ -221,11 +251,14 @@ function App() {
         {
           onTextChunk: (chunk) => {
             accumulatedText += chunk;
-            setStreamingText(accumulatedText);
+            const sceneText = extractSceneTextFromStream(accumulatedText);
+            setStreamingText((prev) => sceneText ?? prev);
           },
-          onComplete: (choices, metadata) => {
+          onComplete: (choices, metadata, sceneText, storySummary) => {
             finalChoices = choices;
             finalMetadata = metadata;
+            finalSceneText = sceneText || '';
+            finalStorySummary = storySummary || '';
           },
           onError: (errorMsg) => {
             setError(errorMsg);
@@ -235,17 +268,15 @@ function App() {
       );
 
       // After streaming completes, update the story
-      if (finalChoices.length > 0) {
+      if (finalMetadata?.is_finished || finalChoices.length > 0) {
         const response: StoryResponse = {
           session_id: story.session_id,
-          current_scene: {
-            text: accumulatedText,
-          },
+          current_scene: createScene(finalSceneText || accumulatedText),
           choices: finalChoices.map((c) => ({
             choice_id: c.choice_id,
             text: c.text,
           })),
-          story_summary: story.story_summary,
+          story_summary: finalStorySummary || story.story_summary,
           metadata: finalMetadata,
         };
 

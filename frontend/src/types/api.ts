@@ -18,6 +18,8 @@ export interface StoryMetadata {
   turns: number;
   theme: string;
   age_range: string;
+  max_turns?: number;
+  is_finished?: boolean;
 }
 
 export interface StoryResponse {
