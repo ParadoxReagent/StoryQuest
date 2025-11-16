@@ -3,9 +3,23 @@ Tests for LLM provider factory.
 """
 
 import pytest
-from app.config import AppConfig, LLMConfig, OllamaConfig, OpenAIConfig, AnthropicConfig
+from app.config import (
+    AnthropicConfig,
+    AppConfig,
+    GeminiConfig,
+    LLMConfig,
+    OllamaConfig,
+    OpenAIConfig,
+    OpenRouterConfig,
+)
 from app.services.llm_factory import create_llm_provider
-from app.services.llm_provider import OllamaProvider, OpenAIProvider, AnthropicProvider
+from app.services.llm_provider import (
+    AnthropicProvider,
+    GeminiProvider,
+    OllamaProvider,
+    OpenAIProvider,
+    OpenRouterProvider,
+)
 
 
 def test_create_ollama_provider():
@@ -56,6 +70,43 @@ def test_create_anthropic_provider():
     assert provider.api_key == "test-key"
 
 
+def test_create_gemini_provider():
+    """Test creating Gemini provider."""
+    config = AppConfig(
+        llm=LLMConfig(
+            provider="gemini",
+            gemini=GeminiConfig(api_key="gem-key", model="gemini-1.5-flash")
+        )
+    )
+
+    provider = create_llm_provider(config)
+
+    assert isinstance(provider, GeminiProvider)
+    assert provider.model == "gemini-1.5-flash"
+    assert provider.api_key == "gem-key"
+
+
+def test_create_openrouter_provider():
+    """Test creating OpenRouter provider."""
+    config = AppConfig(
+        llm=LLMConfig(
+            provider="openrouter",
+            openrouter=OpenRouterConfig(
+                api_key="router-key",
+                model="anthropic/claude-3.5-haiku",
+                site_url="https://example.com",
+                app_name="StoryQuest",
+            )
+        )
+    )
+
+    provider = create_llm_provider(config)
+
+    assert isinstance(provider, OpenRouterProvider)
+    assert provider.model == "anthropic/claude-3.5-haiku"
+    assert provider.api_key == "router-key"
+
+
 def test_create_unknown_provider():
     """Test that unknown provider raises ValueError."""
     config = AppConfig(
@@ -76,4 +127,30 @@ def test_create_openai_provider_without_api_key():
     )
 
     with pytest.raises(ValueError, match="OpenAI API key not configured"):
+        create_llm_provider(config)
+
+
+def test_create_gemini_provider_without_api_key():
+    """Test that Gemini provider without API key raises ValueError."""
+    config = AppConfig(
+        llm=LLMConfig(
+            provider="gemini",
+            gemini=GeminiConfig(api_key="", model="gemini-1.5-flash")
+        )
+    )
+
+    with pytest.raises(ValueError, match="Gemini API key not configured"):
+        create_llm_provider(config)
+
+
+def test_create_openrouter_provider_without_api_key():
+    """Test that OpenRouter provider without API key raises ValueError."""
+    config = AppConfig(
+        llm=LLMConfig(
+            provider="openrouter",
+            openrouter=OpenRouterConfig(api_key="", model="anthropic/claude-3.5-haiku")
+        )
+    )
+
+    with pytest.raises(ValueError, match="OpenRouter API key not configured"):
         create_llm_provider(config)

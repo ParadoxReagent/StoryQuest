@@ -227,6 +227,32 @@ Restart:
 docker-compose down && docker-compose up -d
 ```
 
+### Gemini
+
+Edit `.env`:
+```bash
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=ai-your-key-here
+```
+
+Restart:
+```bash
+docker-compose down && docker-compose up -d
+```
+
+### OpenRouter
+
+Edit `.env`:
+```bash
+LLM_PROVIDER=openrouter
+OPENROUTER_API_KEY=or-your-key-here
+```
+
+Restart:
+```bash
+docker-compose down && docker-compose up -d
+```
+
 ## 📊 Monitoring
 
 ### Resource usage

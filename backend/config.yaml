@@ -2,7 +2,7 @@
 # Phase 2: LLM Abstraction Layer
 
 llm:
-  # Provider: "ollama", "openai", or "anthropic"
+  # Provider: "ollama", "openai", "anthropic", "gemini", or "openrouter"
   # Can be overridden with LLM_PROVIDER environment variable
   provider: "ollama"
 
@@ -25,6 +25,21 @@ llm:
     api_key: "${ANTHROPIC_API_KEY}"
     model: "claude-3-5-haiku-20241022"
     # Other options: "claude-3-5-sonnet-20241022", etc.
+
+  # Gemini Configuration (Cloud LLM)
+  gemini:
+    # Set via GEMINI_API_KEY environment variable
+    api_key: "${GEMINI_API_KEY}"
+    model: "gemini-1.5-flash"
+    # Other options: "gemini-1.5-pro", etc.
+
+  # OpenRouter Configuration (Cloud LLM)
+  openrouter:
+    # Set via OPENROUTER_API_KEY environment variable
+    api_key: "${OPENROUTER_API_KEY}"
+    model: "anthropic/claude-3.5-haiku"
+    site_url: "https://storyquest.local"
+    app_name: "StoryQuest"
 
 # Story Engine Configuration
 story:

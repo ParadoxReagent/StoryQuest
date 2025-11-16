@@ -342,3 +342,163 @@ class AnthropicProvider(LLMProvider):
     async def close(self):
         """Close the HTTP client."""
         await self.client.aclose()
+
+
+class GeminiProvider(LLMProvider):
+    """LLM provider for Google Gemini."""
+
+    def __init__(
+        self,
+        api_key: str,
+        model: str = "gemini-1.5-flash",
+        base_url: str = "https://generativelanguage.googleapis.com/v1beta"
+    ):
+        self.api_key = api_key
+        self.model = model
+        self.base_url = base_url.rstrip("/")
+        self.client = httpx.AsyncClient(timeout=60.0)
+
+    async def generate_story_continuation(
+        self,
+        prompt: str,
+        system_message: Optional[str] = None,
+        max_tokens: int = 500,
+        temperature: float = 0.8
+    ) -> LLMStoryResponse:
+        """Generate story continuation using Gemini."""
+        try:
+            payload: Dict = {
+                "contents": [
+                    {
+                        "role": "user",
+                        "parts": [{"text": prompt}]
+                    }
+                ],
+                "generationConfig": {
+                    "temperature": temperature,
+                    "maxOutputTokens": max_tokens,
+                },
+            }
+
+            if system_message:
+                payload["system_instruction"] = {
+                    "role": "system",
+                    "parts": [{"text": system_message}]
+                }
+
+            response = await self.client.post(
+                f"{self.base_url}/models/{self.model}:generateContent",
+                params={"key": self.api_key},
+                json=payload,
+            )
+            response.raise_for_status()
+
+            result = response.json()
+            candidates = result.get("candidates", [])
+            if not candidates:
+                raise ValueError("Gemini did not return any candidates")
+            parts = candidates[0].get("content", {}).get("parts", [])
+            if not parts:
+                raise ValueError("Gemini response missing content parts")
+            response_text = parts[0].get("text", "")
+
+            return self._parse_llm_response(response_text)
+
+        except httpx.HTTPError as e:
+            logger.error(f"Gemini API error: {e}")
+            raise Exception(f"Failed to generate story with Gemini: {e}")
+        except Exception:
+            logger.exception("Unexpected error in Gemini generation")
+            raise
+
+    async def is_healthy(self) -> bool:
+        """Check if Gemini API is available."""
+        try:
+            response = await self.client.get(
+                f"{self.base_url}/models/{self.model}",
+                params={"key": self.api_key},
+            )
+            return response.status_code == 200
+        except Exception as e:
+            logger.warning(f"Gemini health check failed: {e}")
+            return False
+
+    async def close(self):
+        await self.client.aclose()
+
+
+class OpenRouterProvider(LLMProvider):
+    """LLM provider for OpenRouter."""
+
+    def __init__(
+        self,
+        api_key: str,
+        model: str = "anthropic/claude-3.5-haiku",
+        site_url: str = "https://storyquest.local",
+        app_name: str = "StoryQuest",
+    ):
+        self.api_key = api_key
+        self.model = model
+        self.site_url = site_url
+        self.app_name = app_name
+        self.client = httpx.AsyncClient(
+            timeout=60.0,
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "HTTP-Referer": site_url,
+                "X-Title": app_name,
+                "Content-Type": "application/json",
+            },
+        )
+
+    async def generate_story_continuation(
+        self,
+        prompt: str,
+        system_message: Optional[str] = None,
+        max_tokens: int = 500,
+        temperature: float = 0.8
+    ) -> LLMStoryResponse:
+        """Generate story continuation using OpenRouter."""
+        try:
+            messages = []
+            if system_message:
+                messages.append({"role": "system", "content": system_message})
+            messages.append({"role": "user", "content": prompt})
+
+            payload = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "response_format": {"type": "json_object"},
+            }
+
+            response = await self.client.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                json=payload,
+            )
+            response.raise_for_status()
+
+            result = response.json()
+            response_text = result["choices"][0]["message"]["content"]
+
+            return self._parse_llm_response(response_text)
+
+        except httpx.HTTPError as e:
+            logger.error(f"OpenRouter API error: {e}")
+            raise Exception(f"Failed to generate story with OpenRouter: {e}")
+        except Exception:
+            logger.exception("Unexpected error in OpenRouter generation")
+            raise
+
+    async def is_healthy(self) -> bool:
+        """Check if OpenRouter API is available."""
+        try:
+            response = await self.client.get("https://openrouter.ai/api/v1/models")
+            return response.status_code == 200
+        except Exception as e:
+            logger.warning(f"OpenRouter health check failed: {e}")
+            return False
+
+    async def close(self):
+        await self.client.aclose()

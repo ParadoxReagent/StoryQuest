@@ -48,6 +48,18 @@ LLM_PROVIDER=anthropic
 ANTHROPIC_API_KEY=sk-ant-your-key-here
 ```
 
+For Gemini:
+```bash
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=ai-your-key-here
+```
+
+For OpenRouter:
+```bash
+LLM_PROVIDER=openrouter
+OPENROUTER_API_KEY=or-your-key-here
+```
+
 **4. Start the application**
 
 ```bash

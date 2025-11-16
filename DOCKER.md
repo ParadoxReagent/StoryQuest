@@ -127,6 +127,22 @@ ANTHROPIC_API_KEY=sk-ant-your-key-here
 ANTHROPIC_MODEL=claude-3-5-haiku-20241022
 ```
 
+**Gemini (Cloud):**
+```bash
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=ai-your-key-here
+GEMINI_MODEL=gemini-1.5-flash
+```
+
+**OpenRouter (Cloud Aggregator):**
+```bash
+LLM_PROVIDER=openrouter
+OPENROUTER_API_KEY=or-your-key-here
+OPENROUTER_MODEL=anthropic/claude-3.5-haiku
+OPENROUTER_SITE_URL=https://storyquest.local
+OPENROUTER_APP_NAME=StoryQuest
+```
+
 ### Safety Configuration
 
 ```bash
