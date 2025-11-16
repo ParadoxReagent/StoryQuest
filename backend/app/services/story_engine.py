@@ -150,6 +150,7 @@ class StoryEngine:
         self,
         session_id: UUID,
         choice_id: Optional[str],
+        choice_text: Optional[str],
         custom_input: Optional[str],
         story_summary: str,
         db_session: Session
@@ -160,6 +161,7 @@ class StoryEngine:
         Args:
             session_id: Session UUID
             choice_id: Selected choice ID (if using suggested choice)
+            choice_text: Text of the selected choice (if using suggested choice)
             custom_input: Custom player input (if not using suggested choice)
             story_summary: Current story summary
             db_session: Database session
@@ -193,10 +195,12 @@ class StoryEngine:
                 raise ValueError(f"Input rejected: {result}")
             player_action = result
         elif choice_id:
-            # Get the choice text from the previous turn
-            # For now, we'll just use the choice_id as the action
-            # In a full implementation, we'd retrieve the actual choice text
-            player_action = f"Choice {choice_id}"
+            # Use the actual choice text if provided, otherwise fall back to choice_id
+            if choice_text:
+                player_action = choice_text
+            else:
+                # Fallback for backwards compatibility
+                player_action = f"Choice {choice_id}"
         else:
             raise ValueError("Either choice_id or custom_input must be provided")
 
