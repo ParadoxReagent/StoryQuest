@@ -2,7 +2,7 @@
 # Phase 2: LLM Abstraction Layer
 
 llm:
-  # Provider: "ollama", "openai", "anthropic", "gemini", or "openrouter"
+  # Provider: "ollama", "openai", "anthropic", "gemini", "openrouter", or "lmstudio"
   # Can be overridden with LLM_PROVIDER environment variable
   provider: "ollama"
 
@@ -40,6 +40,12 @@ llm:
     model: "anthropic/claude-3.5-haiku"
     site_url: "https://storyquest.local"
     app_name: "StoryQuest"
+
+  # LM Studio Configuration (Local LLM with OpenAI-compatible API)
+  lmstudio:
+    base_url: "http://localhost:1234"
+    model: "local-model"
+    # Note: LM Studio runs on port 1234 by default
 
 # Story Engine Configuration
 story:

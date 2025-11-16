@@ -502,3 +502,83 @@ class OpenRouterProvider(LLMProvider):
 
     async def close(self):
         await self.client.aclose()
+
+
+class LMStudioProvider(LLMProvider):
+    """LLM provider for LM Studio (local LLM with OpenAI-compatible API)."""
+
+    def __init__(
+        self,
+        model: str = "local-model",
+        base_url: str = "http://localhost:1234"
+    ):
+        """
+        Initialize LM Studio provider.
+
+        Args:
+            model: Model name loaded in LM Studio (default: "local-model")
+            base_url: LM Studio API base URL (default: "http://localhost:1234")
+        """
+        self.model = model
+        self.base_url = base_url.rstrip("/")
+        self.client = httpx.AsyncClient(
+            timeout=60.0,
+            headers={"Content-Type": "application/json"}
+        )
+
+    async def generate_story_continuation(
+        self,
+        prompt: str,
+        system_message: Optional[str] = None,
+        max_tokens: int = 500,
+        temperature: float = 0.8
+    ) -> LLMStoryResponse:
+        """Generate story continuation using LM Studio."""
+        try:
+            # Prepare messages (OpenAI-compatible format)
+            messages = []
+            if system_message:
+                messages.append({"role": "system", "content": system_message})
+            messages.append({"role": "user", "content": prompt})
+
+            # Prepare request payload
+            payload = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+
+            # Call LM Studio API (OpenAI-compatible endpoint)
+            response = await self.client.post(
+                f"{self.base_url}/v1/chat/completions",
+                json=payload
+            )
+            response.raise_for_status()
+
+            # Parse response (OpenAI-compatible format)
+            result = response.json()
+            response_text = result["choices"][0]["message"]["content"]
+
+            # Parse and validate
+            return self._parse_llm_response(response_text)
+
+        except httpx.HTTPError as e:
+            logger.error(f"LM Studio API error: {e}")
+            raise Exception(f"Failed to generate story with LM Studio: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error in LM Studio generation: {e}")
+            raise
+
+    async def is_healthy(self) -> bool:
+        """Check if LM Studio service is available."""
+        try:
+            response = await self.client.get(f"{self.base_url}/v1/models")
+            return response.status_code == 200
+        except Exception as e:
+            logger.warning(f"LM Studio health check failed: {e}")
+            return False
+
+    async def close(self):
+        """Close the HTTP client."""
+        await self.client.aclose()

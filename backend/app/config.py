@@ -50,17 +50,24 @@ class OpenRouterConfig(BaseModel):
     )
 
 
+class LMStudioConfig(BaseModel):
+    """Configuration for LM Studio LLM provider."""
+    base_url: str = Field(default="http://localhost:1234")
+    model: str = Field(default="local-model")
+
+
 class LLMConfig(BaseModel):
     """LLM provider configuration."""
     provider: str = Field(
         default="ollama",
-        description="LLM provider: 'ollama', 'openai', 'anthropic', 'gemini', or 'openrouter'"
+        description="LLM provider: 'ollama', 'openai', 'anthropic', 'gemini', 'openrouter', or 'lmstudio'"
     )
     ollama: OllamaConfig = Field(default_factory=OllamaConfig)
     openai: OpenAIConfig = Field(default_factory=OpenAIConfig)
     anthropic: AnthropicConfig = Field(default_factory=AnthropicConfig)
     gemini: GeminiConfig = Field(default_factory=GeminiConfig)
     openrouter: OpenRouterConfig = Field(default_factory=OpenRouterConfig)
+    lmstudio: LMStudioConfig = Field(default_factory=LMStudioConfig)
 
 
 class StoryConfig(BaseModel):
@@ -144,6 +151,8 @@ class Settings(BaseSettings):
 
     # Provider-specific settings
     OLLAMA_BASE_URL: Optional[str] = None
+    LMSTUDIO_BASE_URL: Optional[str] = None
+    LMSTUDIO_MODEL: Optional[str] = None
     OPENROUTER_SITE_URL: Optional[str] = None
     OPENROUTER_APP_NAME: Optional[str] = None
 
@@ -241,6 +250,14 @@ def load_config(config_path: Optional[Path] = None) -> AppConfig:
     if settings.OPENROUTER_APP_NAME:
         config_dict.setdefault("llm", {}).setdefault("openrouter", {})
         config_dict["llm"]["openrouter"]["app_name"] = settings.OPENROUTER_APP_NAME
+
+    # LM Studio configuration
+    if settings.LMSTUDIO_BASE_URL:
+        config_dict.setdefault("llm", {}).setdefault("lmstudio", {})
+        config_dict["llm"]["lmstudio"]["base_url"] = settings.LMSTUDIO_BASE_URL
+    if settings.LMSTUDIO_MODEL:
+        config_dict.setdefault("llm", {}).setdefault("lmstudio", {})
+        config_dict["llm"]["lmstudio"]["model"] = settings.LMSTUDIO_MODEL
 
     if settings.DATABASE_URL:
         config_dict.setdefault("database", {})
