@@ -27,10 +27,7 @@ export const ChoiceButton: React.FC<ChoiceButtonProps> = ({ choice, onClick, dis
       `}
       aria-label={`Choice: ${choice.text}`}
     >
-      <span className="flex items-center">
-        <span className="mr-3 text-2xl">🎯</span>
-        <span>{choice.text}</span>
-      </span>
+      {choice.text}
     </button>
   );
 };

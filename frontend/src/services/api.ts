@@ -193,8 +193,9 @@ export async function startStoryStream(
                 break;
 
               case 'complete':
-                if (event.choices && event.metadata && callbacks.onComplete) {
-                  callbacks.onComplete(event.choices, event.metadata, event.scene_text, event.story_summary);
+                if (event.metadata && callbacks.onComplete) {
+                  // Choices can be empty array on final turn
+                  callbacks.onComplete(event.choices || [], event.metadata, event.scene_text, event.story_summary);
                 }
                 break;
 
@@ -276,8 +277,9 @@ export async function continueStoryStream(
                 break;
 
               case 'complete':
-                if (event.choices && event.metadata && callbacks.onComplete) {
-                  callbacks.onComplete(event.choices, event.metadata, event.scene_text, event.story_summary);
+                if (event.metadata && callbacks.onComplete) {
+                  // Choices can be empty array on final turn
+                  callbacks.onComplete(event.choices || [], event.metadata, event.scene_text, event.story_summary);
                 }
                 break;
 

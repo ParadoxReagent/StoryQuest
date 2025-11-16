@@ -17,6 +17,40 @@ const ageRanges = [
   { value: '9-12', label: '9-12 years old' },
 ];
 
+// Helper to convert Tailwind gradient classes to inline CSS
+const getGradientStyle = (colorClasses: string): React.CSSProperties => {
+  // Map of Tailwind color names to hex values
+  const colorMap: Record<string, string> = {
+    'indigo-400': '#818cf8',
+    'purple-500': '#a855f7',
+    'green-400': '#4ade80',
+    'emerald-500': '#10b981',
+    'cyan-400': '#22d3ee',
+    'blue-500': '#3b82f6',
+    'orange-400': '#fb923c',
+    'red-500': '#ef4444',
+    'yellow-400': '#facc15',
+    'amber-500': '#f59e0b',
+    'pink-400': '#f472b6',
+    'rose-500': '#f43f5e',
+    'teal-400': '#2dd4bf',
+    'violet-400': '#a78bfa',
+    'fuchsia-500': '#d946ef',
+  };
+
+  // Parse "from-color-400 to-color-500" format
+  const parts = colorClasses.split(' ');
+  const fromColor = parts[0]?.replace('from-', '');
+  const toColor = parts[1]?.replace('to-', '');
+
+  const startColor = colorMap[fromColor] || '#6366f1';
+  const endColor = colorMap[toColor] || '#8b5cf6';
+
+  return {
+    background: `linear-gradient(to bottom right, ${startColor}, ${endColor})`,
+  };
+};
+
 export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disabled = false }) => {
   const [playerName, setPlayerName] = useState('');
   const [ageRange, setAgeRange] = useState('6-8');
@@ -70,7 +104,7 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
         {/* Player Name Input */}
         <div className="bg-white p-6 rounded-2xl border-4 border-primary-300 shadow-lg">
           <label htmlFor="player-name" className="block mb-2 font-kid text-xl font-bold text-primary-700">
-            What's your name, adventurer? 🌟
+            What's your name, adventurer?
           </label>
           <input
             type="text"
@@ -88,7 +122,7 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
         {/* Age Range Selection */}
         <div className="bg-white p-6 rounded-2xl border-4 border-primary-300 shadow-lg">
           <label className="block mb-4 font-kid text-xl font-bold text-primary-700">
-            How old are you? 🎂
+            How old are you?
           </label>
           <div className="flex gap-4">
             {ageRanges.map((range) => (
@@ -117,7 +151,7 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
         {/* Theme Selection */}
         <div className="bg-white p-6 rounded-2xl border-4 border-primary-300 shadow-lg">
           <label className="block mb-4 font-kid text-xl font-bold text-primary-700">
-            Choose your adventure! 🎮
+            Choose your adventure!
           </label>
 
           {/* Loading state */}
@@ -161,10 +195,11 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
                   type="button"
                   onClick={() => setSelectedTheme(theme.id)}
                   disabled={disabled}
+                  style={selectedTheme === theme.id ? getGradientStyle(theme.color) : undefined}
                   className={`
                     p-6 rounded-xl border-4 transition-all duration-200 text-left
                     ${selectedTheme === theme.id
-                      ? `bg-gradient-to-br ${theme.color} border-white text-white scale-105 shadow-xl`
+                      ? 'border-white text-white scale-105 shadow-xl'
                       : 'bg-white border-gray-300 hover:border-primary-400 hover:scale-102 shadow-md'
                     }
                     disabled:opacity-50 disabled:cursor-not-allowed

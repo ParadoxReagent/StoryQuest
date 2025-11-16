@@ -296,7 +296,7 @@ async def start_story_stream(
                         "choice_id": f"c{i + 1}",
                         "text": choice_text
                     }
-                    for i, choice_text in enumerate(llm_response.choices)
+                    for i, choice_text in enumerate(llm_response.choices or [])
                 ]
 
                 story_summary = llm_response.story_summary_update or ""
@@ -445,8 +445,8 @@ async def continue_story_stream(
                         "choice_id": f"c{i + 1}",
                         "text": choice_text
                     }
-                    for i, choice_text in enumerate(llm_response.choices)
-                ] if next_turn_number < max_turns else []
+                    for i, choice_text in enumerate(llm_response.choices or [])
+                ] if next_turn_number < max_turns and llm_response.choices else []
 
                 new_turn_number = next_turn_number
                 scene_id = f"scene_{request.session_id}_{new_turn_number}"
@@ -591,7 +591,7 @@ Generate 6 completely new and creative themes now (do not use the examples above
 Your themes are always positive, safe, and exciting for children. You respond ONLY with valid JSON."""
 
         # Call LLM to generate themes
-        response = await llm_provider.generate_story_continuation(
+        response_text = await llm_provider.generate_raw_json(
             prompt=prompt,
             system_message=system_message,
             max_tokens=800,
@@ -602,7 +602,7 @@ Your themes are always positive, safe, and exciting for children. You respond ON
         try:
             # Extract JSON from response
             import re
-            json_match = re.search(r'\[.*\]', response, re.DOTALL)
+            json_match = re.search(r'\[.*\]', response_text, re.DOTALL)
             if json_match:
                 themes_data = json.loads(json_match.group())
             else:
@@ -633,7 +633,7 @@ Your themes are always positive, safe, and exciting for children. You respond ON
 
         except (json.JSONDecodeError, KeyError, ValueError) as e:
             logger.error(f"Failed to parse LLM theme response: {e}")
-            logger.error(f"LLM response was: {response}")
+            logger.error(f"LLM response was: {response_text}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to generate themes. Please try again."

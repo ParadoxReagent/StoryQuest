@@ -54,6 +54,32 @@ class LLMProvider(ABC):
         """
         pass
 
+    async def generate_raw_json(
+        self,
+        prompt: str,
+        system_message: Optional[str] = None,
+        max_tokens: int = 500,
+        temperature: float = 0.8
+    ) -> str:
+        """
+        Generate raw JSON text from the LLM without parsing as LLMStoryResponse.
+
+        This is useful for custom JSON formats like theme generation.
+
+        Args:
+            prompt: The prompt to send to the LLM
+            system_message: Optional system message for the LLM
+            max_tokens: Maximum tokens to generate
+            temperature: Temperature for generation (0.0-1.0)
+
+        Returns:
+            Raw response text from the LLM
+
+        Raises:
+            NotImplementedError: If not implemented by this provider
+        """
+        raise NotImplementedError("Raw JSON generation not supported by this provider")
+
     async def generate_story_continuation_stream(
         self,
         prompt: str,
@@ -195,6 +221,46 @@ class OllamaProvider(LLMProvider):
             logger.warning(f"Ollama health check failed: {e}")
             return False
 
+    async def generate_raw_json(
+        self,
+        prompt: str,
+        system_message: Optional[str] = None,
+        max_tokens: int = 500,
+        temperature: float = 0.8
+    ) -> str:
+        """Generate raw JSON text using Ollama without parsing."""
+        try:
+            payload = {
+                "model": self.model,
+                "prompt": prompt,
+                "stream": False,
+                "options": {
+                    "temperature": temperature,
+                    "num_predict": max_tokens,
+                }
+            }
+
+            if system_message:
+                payload["system"] = system_message
+
+            response = await self.client.post(
+                f"{self.base_url}/api/generate",
+                json=payload
+            )
+            response.raise_for_status()
+
+            result = response.json()
+            response_text = result.get("response", "")
+
+            return response_text
+
+        except httpx.HTTPError as e:
+            logger.error(f"Ollama API error: {e}")
+            raise Exception(f"Failed to generate raw JSON with Ollama: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error in Ollama raw JSON generation: {e}")
+            raise
+
     async def close(self):
         """Close the HTTP client."""
         await self.client.aclose()
@@ -278,6 +344,46 @@ class OpenAIProvider(LLMProvider):
         except Exception as e:
             logger.warning(f"OpenAI health check failed: {e}")
             return False
+
+    async def generate_raw_json(
+        self,
+        prompt: str,
+        system_message: Optional[str] = None,
+        max_tokens: int = 500,
+        temperature: float = 0.8
+    ) -> str:
+        """Generate raw JSON text using OpenAI without parsing."""
+        try:
+            messages = []
+            if system_message:
+                messages.append({"role": "system", "content": system_message})
+            messages.append({"role": "user", "content": prompt})
+
+            payload = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                # Don't force json_object format - allow arrays too
+            }
+
+            response = await self.client.post(
+                "https://api.openai.com/v1/chat/completions",
+                json=payload
+            )
+            response.raise_for_status()
+
+            result = response.json()
+            response_text = result["choices"][0]["message"]["content"]
+
+            return response_text
+
+        except httpx.HTTPError as e:
+            logger.error(f"OpenAI API error: {e}")
+            raise Exception(f"Failed to generate raw JSON with OpenAI: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error in OpenAI raw JSON generation: {e}")
+            raise
 
     async def close(self):
         """Close the HTTP client."""
@@ -363,6 +469,45 @@ class AnthropicProvider(LLMProvider):
         """
         return bool(self.api_key and len(self.api_key) > 0)
 
+    async def generate_raw_json(
+        self,
+        prompt: str,
+        system_message: Optional[str] = None,
+        max_tokens: int = 500,
+        temperature: float = 0.8
+    ) -> str:
+        """Generate raw JSON text using Anthropic without parsing."""
+        try:
+            payload = {
+                "model": self.model,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "messages": [
+                    {"role": "user", "content": prompt}
+                ]
+            }
+
+            if system_message:
+                payload["system"] = system_message
+
+            response = await self.client.post(
+                "https://api.anthropic.com/v1/messages",
+                json=payload
+            )
+            response.raise_for_status()
+
+            result = response.json()
+            response_text = result["content"][0]["text"]
+
+            return response_text
+
+        except httpx.HTTPError as e:
+            logger.error(f"Anthropic API error: {e}")
+            raise Exception(f"Failed to generate raw JSON with Anthropic: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error in Anthropic raw JSON generation: {e}")
+            raise
+
     async def close(self):
         """Close the HTTP client."""
         await self.client.aclose()
@@ -447,6 +592,59 @@ class GeminiProvider(LLMProvider):
             logger.warning(f"Gemini health check failed: {e}")
             return False
 
+    async def generate_raw_json(
+        self,
+        prompt: str,
+        system_message: Optional[str] = None,
+        max_tokens: int = 500,
+        temperature: float = 0.8
+    ) -> str:
+        """Generate raw JSON text using Gemini without parsing."""
+        try:
+            payload: Dict = {
+                "contents": [
+                    {
+                        "role": "user",
+                        "parts": [{"text": prompt}]
+                    }
+                ],
+                "generationConfig": {
+                    "temperature": temperature,
+                    "maxOutputTokens": max_tokens,
+                },
+            }
+
+            if system_message:
+                payload["system_instruction"] = {
+                    "role": "system",
+                    "parts": [{"text": system_message}]
+                }
+
+            response = await self.client.post(
+                f"{self.base_url}/models/{self.model}:generateContent",
+                params={"key": self.api_key},
+                json=payload,
+            )
+            response.raise_for_status()
+
+            result = response.json()
+            candidates = result.get("candidates", [])
+            if not candidates:
+                raise ValueError("Gemini did not return any candidates")
+            parts = candidates[0].get("content", {}).get("parts", [])
+            if not parts:
+                raise ValueError("Gemini response missing content parts")
+            response_text = parts[0].get("text", "")
+
+            return response_text
+
+        except httpx.HTTPError as e:
+            logger.error(f"Gemini API error: {e}")
+            raise Exception(f"Failed to generate raw JSON with Gemini: {e}")
+        except Exception:
+            logger.exception("Unexpected error in Gemini raw JSON generation")
+            raise
+
     async def close(self):
         await self.client.aclose()
 
@@ -523,6 +721,46 @@ class OpenRouterProvider(LLMProvider):
         except Exception as e:
             logger.warning(f"OpenRouter health check failed: {e}")
             return False
+
+    async def generate_raw_json(
+        self,
+        prompt: str,
+        system_message: Optional[str] = None,
+        max_tokens: int = 500,
+        temperature: float = 0.8
+    ) -> str:
+        """Generate raw JSON text using OpenRouter without parsing."""
+        try:
+            messages = []
+            if system_message:
+                messages.append({"role": "system", "content": system_message})
+            messages.append({"role": "user", "content": prompt})
+
+            payload = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                # Don't force json_object format - allow arrays too
+            }
+
+            response = await self.client.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                json=payload,
+            )
+            response.raise_for_status()
+
+            result = response.json()
+            response_text = result["choices"][0]["message"]["content"]
+
+            return response_text
+
+        except httpx.HTTPError as e:
+            logger.error(f"OpenRouter API error: {e}")
+            raise Exception(f"Failed to generate raw JSON with OpenRouter: {e}")
+        except Exception:
+            logger.exception("Unexpected error in OpenRouter raw JSON generation")
+            raise
 
     async def generate_story_continuation_stream(
         self,
@@ -669,6 +907,45 @@ class LMStudioProvider(LLMProvider):
         except Exception as e:
             logger.warning(f"LM Studio health check failed: {e}")
             return False
+
+    async def generate_raw_json(
+        self,
+        prompt: str,
+        system_message: Optional[str] = None,
+        max_tokens: int = 500,
+        temperature: float = 0.8
+    ) -> str:
+        """Generate raw JSON text using LM Studio without parsing."""
+        try:
+            messages = []
+            if system_message:
+                messages.append({"role": "system", "content": system_message})
+            messages.append({"role": "user", "content": prompt})
+
+            payload = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+
+            response = await self.client.post(
+                f"{self.base_url}/v1/chat/completions",
+                json=payload
+            )
+            response.raise_for_status()
+
+            result = response.json()
+            response_text = result["choices"][0]["message"]["content"]
+
+            return response_text
+
+        except httpx.HTTPError as e:
+            logger.error(f"LM Studio API error: {e}")
+            raise Exception(f"Failed to generate raw JSON with LM Studio: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error in LM Studio raw JSON generation: {e}")
+            raise
 
     async def generate_story_continuation_stream(
         self,

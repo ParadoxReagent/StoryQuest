@@ -7,6 +7,7 @@ import React from 'react';
 import type { StoryResponse } from '../types/api';
 import ChoiceButton from './ChoiceButton';
 import CustomInput from './CustomInput';
+import { useThrottledText } from '../hooks/useThrottledText';
 
 interface Choice {
   choice_id: string;
@@ -30,6 +31,19 @@ export const StoryView: React.FC<StoryViewProps> = ({
   streamingText = '',
   isStreaming = false,
 }) => {
+  // Throttle streaming text for smooth, consistent animation
+  // This prevents flickering on fast LLMs by controlling visual display speed
+  const throttledText = useThrottledText(streamingText, isStreaming, {
+    charsPerFrame: 3,  // Reveal 3 characters per frame
+    frameDelay: 20,    // Update every 20ms (50fps) = ~150 chars/second
+  });
+
+  // Use the current scene text as the display text, with smooth transitions
+  // Show old scene text until new streaming text arrives
+  const displayText = isStreaming && throttledText ? throttledText : story.current_scene.text;
+  // Only show cursor when we have a reasonable amount of text streaming
+  const showCursor = isStreaming && throttledText.length > 10;
+
   const isFinished = story.metadata?.is_finished;
   const maxTurns = story.metadata?.max_turns;
   const themeEmojis: Record<string, string> = {
@@ -82,19 +96,22 @@ export const StoryView: React.FC<StoryViewProps> = ({
 
       {/* Current Scene */}
       <div className="bg-white p-8 rounded-2xl border-4 border-primary-300 shadow-xl">
-        <div className="prose prose-lg max-w-none">
-          <p
-            key={isStreaming ? streamingText : story.current_scene.scene_id}
-            className="font-kid text-xl leading-relaxed text-gray-800 whitespace-pre-wrap fade-in-text"
-          >
-            {isStreaming ? streamingText : story.current_scene.text}
-          </p>
+        <div className="prose prose-lg max-w-none story-text-container">
+          <div className="min-h-[6rem]">
+            <p className="font-kid text-xl leading-relaxed text-gray-800 whitespace-pre-wrap">
+              {displayText}
+              {/* Blinking cursor during streaming */}
+              {showCursor && (
+                <span className="inline-block w-0.5 h-6 bg-primary-500 ml-0.5 animate-pulse align-middle" />
+              )}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Loading Indicator */}
-      {disabled && !isFinished && (
-        <div className="bg-yellow-50 border-4 border-yellow-300 rounded-2xl p-6 shadow-lg">
+      {/* Loading Indicator - Only show during initial load, not during streaming */}
+      {disabled && !story.current_scene.text && !isFinished && (
+        <div className="bg-yellow-50 border-4 border-yellow-300 rounded-2xl p-6 shadow-lg story-scene-enter">
           <div className="flex items-center justify-center gap-3">
             <div className="animate-spin rounded-full h-8 w-8 border-4 border-yellow-500 border-t-transparent"></div>
             <p className="font-kid text-xl font-bold text-yellow-700">

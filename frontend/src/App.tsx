@@ -73,7 +73,7 @@ function App() {
     setError(null);
     setAppState('loading');
     setStreamingText('');
-    setIsStreaming(true);
+    setIsStreaming(false);
 
     try {
       let sessionId = '';
@@ -93,7 +93,10 @@ function App() {
           onTextChunk: (chunk) => {
             accumulatedText += chunk;
             const sceneText = extractSceneTextFromStream(accumulatedText);
-            setStreamingText((prev) => sceneText ?? prev);
+            if (sceneText) {
+              setIsStreaming(true);
+              setStreamingText(sceneText);
+            }
           },
           onComplete: (choices, metadata, sceneText, storySummary) => {
             finalChoices = choices;
@@ -109,7 +112,7 @@ function App() {
       );
 
       // After streaming completes, construct the story response
-      if (finalMetadata?.is_finished || finalChoices.length > 0) {
+      if (finalMetadata && sessionId) {
         const response: StoryResponse = {
           session_id: sessionId,
           current_scene: createScene(finalSceneText || accumulatedText),
@@ -148,7 +151,8 @@ function App() {
     setIsLoading(true);
     setError(null);
     setStreamingText('');
-    setIsStreaming(true);
+    // Don't set isStreaming until we actually receive text chunks
+    setIsStreaming(false);
 
     // Add previous turn to history immediately
     const previousTurn: Turn = {
@@ -176,7 +180,10 @@ function App() {
           onTextChunk: (chunk) => {
             accumulatedText += chunk;
             const sceneText = extractSceneTextFromStream(accumulatedText);
-            setStreamingText((prev) => sceneText ?? prev);
+            if (sceneText) {
+              setIsStreaming(true);
+              setStreamingText(sceneText);
+            }
           },
           onComplete: (choices, metadata, sceneText, storySummary) => {
             finalChoices = choices;
@@ -192,7 +199,7 @@ function App() {
       );
 
       // After streaming completes, update the story
-      if (finalMetadata?.is_finished || finalChoices.length > 0) {
+      if (finalMetadata) {
         const response: StoryResponse = {
           session_id: story.session_id,
           current_scene: createScene(finalSceneText || accumulatedText),
@@ -225,7 +232,7 @@ function App() {
     setIsLoading(true);
     setError(null);
     setStreamingText('');
-    setIsStreaming(true);
+    setIsStreaming(false);
 
     // Add previous turn to history immediately
     const previousTurn: Turn = {
@@ -252,7 +259,10 @@ function App() {
           onTextChunk: (chunk) => {
             accumulatedText += chunk;
             const sceneText = extractSceneTextFromStream(accumulatedText);
-            setStreamingText((prev) => sceneText ?? prev);
+            if (sceneText) {
+              setIsStreaming(true);
+              setStreamingText(sceneText);
+            }
           },
           onComplete: (choices, metadata, sceneText, storySummary) => {
             finalChoices = choices;
@@ -268,7 +278,7 @@ function App() {
       );
 
       // After streaming completes, update the story
-      if (finalMetadata?.is_finished || finalChoices.length > 0) {
+      if (finalMetadata) {
         const response: StoryResponse = {
           session_id: story.session_id,
           current_scene: createScene(finalSceneText || accumulatedText),

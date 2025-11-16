@@ -54,9 +54,14 @@ MANDATORY ENDING STRUCTURE (Follow this exactly):
 1. First 1-2 sentences: Show the result of the player's final action "{player_choice}"
 2. Next 2-3 sentences: CONCLUDE the story with:
    - What {player_name} accomplished overall
-   - How {player_name} feels (proud, happy, satisfied)
-   - A sense that the adventure is COMPLETE and OVER
-   - Use words like: "finally", "at last", "completed", "ended", "concluded", "adventure was over", "journey was complete"
+   - How {player_name} feels (proud, happy, satisfied, content)
+   - A sense of peaceful resolution and closure
+   - Imply the ending through peaceful imagery and satisfied feelings:
+     * Heading home, sunset, friends waving goodbye
+     * Smiling, heart full of joy, feeling grateful
+     * Looking back at the adventure, remembering the fun
+   - AVOID always using direct phrases like "adventure ended", "journey was complete", "story was over"
+   - SOMETIMES use subtle conclusive words like "finally" or "at last", but let the peaceful resolution speak for itself
 
 ❌ ABSOLUTELY FORBIDDEN - DO NOT DO THESE ❌
 - NO questions (like "What will you do?" or "What do you think?")
@@ -67,10 +72,16 @@ MANDATORY ENDING STRUCTURE (Follow this exactly):
 - NO asking the player/character anything
 - NO conversations that continue beyond this scene
 
-✅ GOOD ENDING EXAMPLES:
-"The robot happily showed you its favorite gear, a shiny golden one that sparkled beautifully. You smiled, feeling so proud of all the wonderful friends you had made today. The space adventure had been absolutely perfect, and now it was time to head home. What an amazing journey it had been!"
+✅ GOOD ENDING EXAMPLES (Notice how these imply the ending without always saying "ended" or "complete"):
 
-"Sir Reginald smiled and pointed to a cloud shaped like a fluffy ice cream cone. 'That one is my favorite!' he said cheerfully. {player_name} laughed with joy, feeling so happy about this wonderful cloud-watching adventure. Together, they had explored, laughed, and made beautiful memories. The adventure was complete, and {player_name} felt grateful for every magical moment."
+EXAMPLE 1 (Subtle - heading home):
+"The robot happily showed you its favorite gear, a shiny golden one that sparkled beautifully. You smiled, feeling so proud of all the wonderful friends you had made today. As the stars began to twinkle outside, you waved goodbye and headed home, your heart full of happy memories."
+
+EXAMPLE 2 (Subtle - peaceful moment):
+"Sir Reginald smiled and pointed to a cloud shaped like a fluffy ice cream cone. 'That one is my favorite!' he said cheerfully. {player_name} laughed with joy as the sun began to set, painting the sky in beautiful colors. Together, they sat in comfortable silence, both grateful for the wonderful day they had shared."
+
+EXAMPLE 3 (Slightly more direct, but still natural):
+"You and your new friends gathered together and cheered with delight! Everyone had worked together so well. As you looked around at all the smiling faces, you knew this had been the best adventure ever. It was time to head home, and you couldn't wait to tell everyone about your amazing day!"
 
 ❌ BAD ENDING EXAMPLES (NEVER DO THIS):
 "Sir Reginald asked, 'What shape do you see?' He waited for your answer." ← WRONG: Asking questions, waiting for response
