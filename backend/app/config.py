@@ -30,12 +30,37 @@ class AnthropicConfig(BaseModel):
     model: str = Field(default="claude-3-5-haiku-20241022")
 
 
+class GeminiConfig(BaseModel):
+    """Configuration for Google Gemini LLM provider."""
+    api_key: str = Field(default="")
+    model: str = Field(default="gemini-1.5-flash")
+
+
+class OpenRouterConfig(BaseModel):
+    """Configuration for OpenRouter LLM provider."""
+    api_key: str = Field(default="")
+    model: str = Field(default="anthropic/claude-3.5-haiku")
+    site_url: str = Field(
+        default="https://storyquest.local",
+        description="Site/Referer value required by OpenRouter"
+    )
+    app_name: str = Field(
+        default="StoryQuest",
+        description="X-Title header value required by OpenRouter"
+    )
+
+
 class LLMConfig(BaseModel):
     """LLM provider configuration."""
-    provider: str = Field(default="ollama", description="LLM provider: 'ollama', 'openai', or 'anthropic'")
+    provider: str = Field(
+        default="ollama",
+        description="LLM provider: 'ollama', 'openai', 'anthropic', 'gemini', or 'openrouter'"
+    )
     ollama: OllamaConfig = Field(default_factory=OllamaConfig)
     openai: OpenAIConfig = Field(default_factory=OpenAIConfig)
     anthropic: AnthropicConfig = Field(default_factory=AnthropicConfig)
+    gemini: GeminiConfig = Field(default_factory=GeminiConfig)
+    openrouter: OpenRouterConfig = Field(default_factory=OpenRouterConfig)
 
 
 class StoryConfig(BaseModel):
@@ -106,6 +131,12 @@ class Settings(BaseSettings):
     # Environment variables take precedence
     OPENAI_API_KEY: Optional[str] = None
     ANTHROPIC_API_KEY: Optional[str] = None
+    GEMINI_API_KEY: Optional[str] = None
+    OPENROUTER_API_KEY: Optional[str] = None
+    GEMINI_MODEL: Optional[str] = None
+    OPENROUTER_MODEL: Optional[str] = None
+    OPENROUTER_SITE_URL: Optional[str] = None
+    OPENROUTER_APP_NAME: Optional[str] = None
     DATABASE_URL: Optional[str] = None
     LLM_PROVIDER: Optional[str] = None
 
@@ -162,6 +193,26 @@ def load_config(config_path: Optional[Path] = None) -> AppConfig:
         config_dict.setdefault("llm", {}).setdefault("anthropic", {})
         config_dict["llm"]["anthropic"]["api_key"] = settings.ANTHROPIC_API_KEY
 
+    if settings.GEMINI_API_KEY:
+        config_dict.setdefault("llm", {}).setdefault("gemini", {})
+        config_dict["llm"]["gemini"]["api_key"] = settings.GEMINI_API_KEY
+    if settings.GEMINI_MODEL:
+        config_dict.setdefault("llm", {}).setdefault("gemini", {})
+        config_dict["llm"]["gemini"]["model"] = settings.GEMINI_MODEL
+
+    if settings.OPENROUTER_API_KEY:
+        config_dict.setdefault("llm", {}).setdefault("openrouter", {})
+        config_dict["llm"]["openrouter"]["api_key"] = settings.OPENROUTER_API_KEY
+    if settings.OPENROUTER_MODEL:
+        config_dict.setdefault("llm", {}).setdefault("openrouter", {})
+        config_dict["llm"]["openrouter"]["model"] = settings.OPENROUTER_MODEL
+    if settings.OPENROUTER_SITE_URL:
+        config_dict.setdefault("llm", {}).setdefault("openrouter", {})
+        config_dict["llm"]["openrouter"]["site_url"] = settings.OPENROUTER_SITE_URL
+    if settings.OPENROUTER_APP_NAME:
+        config_dict.setdefault("llm", {}).setdefault("openrouter", {})
+        config_dict["llm"]["openrouter"]["app_name"] = settings.OPENROUTER_APP_NAME
+
     if settings.DATABASE_URL:
         config_dict.setdefault("database", {})
         config_dict["database"]["url"] = settings.DATABASE_URL
@@ -186,6 +237,10 @@ def save_config(config: AppConfig, config_path: Path = Path("config.yaml")) -> N
             config_dict["llm"]["openai"]["api_key"] = "${OPENAI_API_KEY}"
         if "anthropic" in config_dict["llm"] and "api_key" in config_dict["llm"]["anthropic"]:
             config_dict["llm"]["anthropic"]["api_key"] = "${ANTHROPIC_API_KEY}"
+        if "gemini" in config_dict["llm"] and "api_key" in config_dict["llm"]["gemini"]:
+            config_dict["llm"]["gemini"]["api_key"] = "${GEMINI_API_KEY}"
+        if "openrouter" in config_dict["llm"] and "api_key" in config_dict["llm"]["openrouter"]:
+            config_dict["llm"]["openrouter"]["api_key"] = "${OPENROUTER_API_KEY}"
 
     with open(config_path, "w") as f:
         yaml.dump(config_dict, f, default_flow_style=False, sort_keys=False)

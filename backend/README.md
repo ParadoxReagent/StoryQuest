@@ -14,6 +14,8 @@ LLM-powered kids' text adventure game backend API.
   - Ollama provider (local LLM)
   - OpenAI provider (cloud LLM)
   - Anthropic provider (cloud LLM)
+  - Gemini provider (cloud LLM)
+  - OpenRouter provider (cloud LLM aggregator)
   - Configuration system with YAML support
   - Factory pattern for provider creation
 
@@ -92,6 +94,14 @@ OPENAI_API_KEY=sk-your-key-here
 # For Anthropic
 LLM_PROVIDER=anthropic
 ANTHROPIC_API_KEY=sk-ant-your-key-here
+
+# For Gemini
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=ai-your-key-here
+
+# For OpenRouter
+LLM_PROVIDER=openrouter
+OPENROUTER_API_KEY=or-your-key-here
 ```
 
 Then restart:
@@ -169,7 +179,7 @@ Edit `config.yaml` or set the `LLM_PROVIDER` environment variable:
 
 ```yaml
 llm:
-  provider: "ollama"  # or "openai", "anthropic"
+  provider: "ollama"  # or "openai", "anthropic", "gemini", "openrouter"
 ```
 
 ### Using Different LLM Providers
@@ -199,6 +209,26 @@ llm:
   anthropic:
     api_key: "${ANTHROPIC_API_KEY}"  # Set in .env
     model: "claude-3-5-haiku-20241022"
+```
+
+**Gemini (Cloud):**
+```yaml
+llm:
+  provider: "gemini"
+  gemini:
+    api_key: "${GEMINI_API_KEY}"  # Set in .env
+    model: "gemini-1.5-flash"
+```
+
+**OpenRouter (Cloud Aggregator):**
+```yaml
+llm:
+  provider: "openrouter"
+  openrouter:
+    api_key: "${OPENROUTER_API_KEY}"  # Set in .env
+    model: "anthropic/claude-3.5-haiku"
+    site_url: "https://storyquest.local"
+    app_name: "StoryQuest"
 ```
 
 ## API Endpoints

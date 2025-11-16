@@ -34,6 +34,14 @@ OPENAI_API_KEY=sk-your-key-here
 # For Anthropic
 LLM_PROVIDER=anthropic
 ANTHROPIC_API_KEY=sk-ant-your-key-here
+
+# For Gemini
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=ai-your-key-here
+
+# For OpenRouter
+LLM_PROVIDER=openrouter
+OPENROUTER_API_KEY=or-your-key-here
 ```
 
 For local LLM (Ollama), keep the default `LLM_PROVIDER=ollama`.
@@ -110,7 +118,7 @@ If you want to use a local LLM:
 ### LLM generation fails
 
 - **Ollama**: Make sure Ollama is running: `ollama list`
-- **OpenAI/Anthropic**: Verify your API key is correct in `.env`
+- **OpenAI/Anthropic/Gemini/OpenRouter**: Verify your API key is correct in `.env`
 - **Check logs**: Look at the backend terminal for error messages
 
 ### Database errors

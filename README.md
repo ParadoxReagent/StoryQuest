@@ -8,7 +8,7 @@ StoryQuest is an LLM-powered text adventure game designed for children aged 6-12
 
 ## Key Features
 
-- **Flexible LLM Support**: Works with local LLMs (Ollama) or cloud LLMs (OpenAI, Anthropic)
+- **Flexible LLM Support**: Works with local LLMs (Ollama) or cloud LLMs (OpenAI, Anthropic, Gemini, OpenRouter)
 - **Multi-Platform**: Designed for both Web UI and iPad app
 - **Safe & Kid-Friendly**: Built-in safety filters and age-appropriate content
 - **Interactive Storytelling**: Choose from suggestions or create your own responses
@@ -100,7 +100,7 @@ cd StoryQuest
 2. (Optional) Configure environment variables:
 ```bash
 cp .env.example .env
-# Edit .env if using cloud LLMs (OpenAI/Anthropic)
+# Edit .env if using cloud LLMs (OpenAI/Anthropic/Gemini/OpenRouter)
 ```
 
 3. Start the application:
@@ -218,6 +218,18 @@ LLM_PROVIDER=anthropic
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
+Or for Gemini:
+```bash
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=ai-...
+```
+
+Or for OpenRouter:
+```bash
+LLM_PROVIDER=openrouter
+OPENROUTER_API_KEY=or-...
+```
+
 </details>
 
 ---
@@ -236,6 +248,8 @@ ANTHROPIC_API_KEY=sk-ant-...
 - Ollama provider (local LLM)
 - OpenAI provider (GPT-4o-mini)
 - Anthropic provider (Claude)
+- Gemini provider (Gemini 1.5 Flash)
+- OpenRouter provider (multi-model aggregator)
 - Configuration system with YAML support
 - Factory pattern for LLM providers
 

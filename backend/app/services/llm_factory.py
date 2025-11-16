@@ -9,9 +9,11 @@ from typing import Optional
 from app.config import AppConfig, get_config
 from app.services.llm_provider import (
     AnthropicProvider,
+    GeminiProvider,
     LLMProvider,
     OllamaProvider,
     OpenAIProvider,
+    OpenRouterProvider,
 )
 
 logger = logging.getLogger(__name__)
@@ -67,10 +69,36 @@ def create_llm_provider(config: Optional[AppConfig] = None) -> LLMProvider:
             model=config.llm.anthropic.model
         )
 
+    elif provider_type == "gemini":
+        api_key = config.llm.gemini.api_key
+        if not api_key:
+            raise ValueError(
+                "Gemini API key not configured. "
+                "Set GEMINI_API_KEY environment variable or add to config.yaml"
+            )
+        return GeminiProvider(
+            api_key=api_key,
+            model=config.llm.gemini.model
+        )
+
+    elif provider_type == "openrouter":
+        api_key = config.llm.openrouter.api_key
+        if not api_key:
+            raise ValueError(
+                "OpenRouter API key not configured. "
+                "Set OPENROUTER_API_KEY environment variable or add to config.yaml"
+            )
+        return OpenRouterProvider(
+            api_key=api_key,
+            model=config.llm.openrouter.model,
+            site_url=config.llm.openrouter.site_url,
+            app_name=config.llm.openrouter.app_name,
+        )
+
     else:
         raise ValueError(
             f"Unknown LLM provider: {provider_type}. "
-            f"Must be one of: ollama, openai, anthropic"
+            f"Must be one of: ollama, openai, anthropic, gemini, openrouter"
         )
 
 
