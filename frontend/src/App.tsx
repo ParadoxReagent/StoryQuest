@@ -57,6 +57,7 @@ function App() {
       let sessionId = '';
       let finalChoices: any[] = [];
       let finalMetadata: any = null;
+      let accumulatedText = '';
 
       await startStoryStream(
         { player_name: playerName, age_range: ageRange, theme },
@@ -66,7 +67,8 @@ function App() {
             setAppState('playing');
           },
           onTextChunk: (chunk) => {
-            setStreamingText((prev) => prev + chunk);
+            accumulatedText += chunk;
+            setStreamingText(accumulatedText);
           },
           onComplete: (choices, metadata) => {
             finalChoices = choices;
@@ -84,7 +86,7 @@ function App() {
         const response: StoryResponse = {
           session_id: sessionId,
           current_scene: {
-            text: streamingText,
+            text: accumulatedText,
           },
           choices: finalChoices.map((c) => ({
             choice_id: c.choice_id,
@@ -97,7 +99,7 @@ function App() {
         setStory(response);
         setHistory([
           {
-            scene_text: streamingText,
+            scene_text: accumulatedText,
             turn_number: 0,
           },
         ]);
@@ -134,6 +136,7 @@ function App() {
     try {
       let finalChoices: any[] = [];
       let finalMetadata: any = null;
+      let accumulatedText = '';
 
       await continueStoryStream(
         {
@@ -144,7 +147,8 @@ function App() {
         },
         {
           onTextChunk: (chunk) => {
-            setStreamingText((prev) => prev + chunk);
+            accumulatedText += chunk;
+            setStreamingText(accumulatedText);
           },
           onComplete: (choices, metadata) => {
             finalChoices = choices;
@@ -162,7 +166,7 @@ function App() {
         const response: StoryResponse = {
           session_id: story.session_id,
           current_scene: {
-            text: streamingText,
+            text: accumulatedText,
           },
           choices: finalChoices.map((c) => ({
             choice_id: c.choice_id,
@@ -206,6 +210,7 @@ function App() {
     try {
       let finalChoices: any[] = [];
       let finalMetadata: any = null;
+      let accumulatedText = '';
 
       await continueStoryStream(
         {
@@ -215,7 +220,8 @@ function App() {
         },
         {
           onTextChunk: (chunk) => {
-            setStreamingText((prev) => prev + chunk);
+            accumulatedText += chunk;
+            setStreamingText(accumulatedText);
           },
           onComplete: (choices, metadata) => {
             finalChoices = choices;
@@ -233,7 +239,7 @@ function App() {
         const response: StoryResponse = {
           session_id: story.session_id,
           current_scene: {
-            text: streamingText,
+            text: accumulatedText,
           },
           choices: finalChoices.map((c) => ({
             choice_id: c.choice_id,

@@ -283,18 +283,16 @@ async def start_story_stream(
 
             # Parse complete response to extract scene_text and choices
             try:
-                # Parse using the provider's method
-                from app.services.llm_provider import LLMProvider
-                llm_base = LLMProvider()
-                llm_response = llm_base._parse_llm_response(full_response)
+                # Use the concrete provider instance to parse the response
+                llm_response = llm_provider._parse_llm_response(full_response)
 
-                # Create choices
+                # Create choices with generated IDs (matching StoryEngine format)
                 choices = [
                     {
-                        "choice_id": choice.choice_id,
-                        "text": choice.text
+                        "choice_id": f"c{i + 1}",
+                        "text": choice_text
                     }
-                    for choice in llm_response.choices
+                    for i, choice_text in enumerate(llm_response.choices)
                 ]
 
                 # Save to database
@@ -420,17 +418,15 @@ async def continue_story_stream(
 
             # Parse complete response
             try:
-                from app.services.llm_provider import LLMProvider
-                llm_base = LLMProvider()
-                llm_response = llm_base._parse_llm_response(full_response)
+                llm_response = llm_provider._parse_llm_response(full_response)
 
                 # Create choices
                 choices = [
                     {
-                        "choice_id": choice.choice_id,
-                        "text": choice.text
+                        "choice_id": f"c{i + 1}",
+                        "text": choice_text
                     }
-                    for choice in llm_response.choices
+                    for i, choice_text in enumerate(llm_response.choices)
                 ]
 
                 # Save to database
