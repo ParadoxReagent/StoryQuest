@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Choice(BaseModel):
@@ -53,8 +53,8 @@ class ContinueStoryRequest(BaseModel):
     custom_input: Optional[str] = Field(None, max_length=200, description="Custom player input (if not using suggested choice)")
     story_summary: str = Field(..., description="Current story summary (sent by client for stateless backend)")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "session_id": "550e8400-e29b-41d4-a716-446655440000",
                 "choice_id": "c1",
@@ -62,6 +62,7 @@ class ContinueStoryRequest(BaseModel):
                 "story_summary": "Alex is exploring a magical forest and has met a friendly fox."
             }
         }
+    )
 
 
 class StoryResponse(BaseModel):
