@@ -1,7 +1,10 @@
 /**
  * ThemeSelection Component
  * Allows the player to start a new story with a chosen theme
- * Enhanced with animations and skeleton screens (Optimization 2.1)
+ * Optimization 2.1: Enhanced with animations and skeleton screens
+ * Optimization 2.2: Enhanced Theme Selection UI
+ * Optimization 2.3: Typography & Visual Hierarchy
+ * Optimization 2.4: Dark Mode Support
  */
 
 import React, { useState, useEffect } from 'react';
@@ -94,19 +97,36 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
 
   return (
     <div className="max-w-4xl mx-auto">
+      {/* Optimization 2.3: Enhanced Typography with font-heading */}
       <div className="text-center mb-8">
-        <h1 className="text-6xl font-kid font-bold text-primary-600 mb-4">
+        <motion.h1
+          className="text-5xl md:text-6xl font-heading font-bold text-primary-600 dark:text-primary-400 mb-4 transition-colors duration-250"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           StoryQuest ✨
-        </h1>
-        <p className="text-2xl font-kid text-gray-700">
+        </motion.h1>
+        <motion.p
+          className="text-xl md:text-2xl font-body text-gray-700 dark:text-dark-text-secondary transition-colors duration-250"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
           Let's begin your amazing adventure!
-        </p>
+        </motion.p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Player Name Input */}
-        <div className="bg-white p-6 rounded-2xl border-4 border-primary-300 shadow-lg">
-          <label htmlFor="player-name" className="block mb-2 font-kid text-xl font-bold text-primary-700">
+        {/* Optimization 2.2 & 2.4: Enhanced Player Name Input with dark mode */}
+        <motion.div
+          className="bg-white dark:bg-dark-bg-secondary p-6 rounded-2xl border-4 border-primary-300 dark:border-dark-border-primary shadow-card dark:shadow-card-dark transition-colors duration-250"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3, duration: 0.4 }}
+        >
+          <label htmlFor="player-name" className="block mb-3 font-heading text-xl font-bold text-primary-700 dark:text-primary-400 flex items-center gap-2">
+            <span className="text-2xl">👤</span>
             What's your name, adventurer?
           </label>
           <input
@@ -117,28 +137,36 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
             disabled={disabled}
             placeholder="Enter your name..."
             maxLength={100}
-            className="w-full p-4 border-4 border-primary-200 rounded-xl font-kid text-xl focus:outline-none focus:border-primary-500 disabled:bg-gray-100"
+            className="w-full p-4 border-4 border-primary-200 dark:border-dark-border-secondary rounded-xl font-body text-xl bg-white dark:bg-dark-bg-tertiary text-gray-800 dark:text-dark-text-primary placeholder-gray-400 dark:placeholder-dark-text-tertiary focus:outline-none focus:border-primary-500 dark:focus:border-primary-400 disabled:bg-gray-100 dark:disabled:bg-dark-bg-primary disabled:cursor-not-allowed transition-colors duration-250"
             aria-label="Player name input"
           />
-        </div>
+        </motion.div>
 
-        {/* Age Range Selection */}
-        <div className="bg-white p-6 rounded-2xl border-4 border-primary-300 shadow-lg">
-          <label className="block mb-4 font-kid text-xl font-bold text-primary-700">
+        {/* Optimization 2.2 & 2.4: Enhanced Age Range Selection with dark mode */}
+        <motion.div
+          className="bg-white dark:bg-dark-bg-secondary p-6 rounded-2xl border-4 border-primary-300 dark:border-dark-border-primary shadow-card dark:shadow-card-dark transition-colors duration-250"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4, duration: 0.4 }}
+        >
+          <label className="block mb-4 font-heading text-xl font-bold text-primary-700 dark:text-primary-400 flex items-center gap-2">
+            <span className="text-2xl">🎂</span>
             How old are you?
           </label>
           <div className="flex gap-4">
             {ageRanges.map((range) => (
-              <button
+              <motion.button
                 key={range.value}
                 type="button"
                 onClick={() => setAgeRange(range.value)}
                 disabled={disabled}
+                whileHover={!disabled ? { scale: 1.03 } : undefined}
+                whileTap={!disabled ? { scale: 0.97 } : undefined}
                 className={`
-                  flex-1 p-4 rounded-xl border-4 font-kid text-lg font-bold transition-all duration-200
+                  flex-1 p-4 rounded-xl border-4 font-body text-lg font-bold transition-all duration-250
                   ${ageRange === range.value
-                    ? 'bg-primary-500 border-primary-600 text-white scale-105 shadow-lg'
-                    : 'bg-white border-primary-300 text-primary-700 hover:border-primary-500 hover:scale-102'
+                    ? 'bg-primary-500 dark:bg-primary-600 border-primary-600 dark:border-primary-700 text-white scale-105 shadow-card-hover dark:shadow-card-hover-dark'
+                    : 'bg-white dark:bg-dark-bg-tertiary border-primary-300 dark:border-dark-border-secondary text-primary-700 dark:text-dark-text-primary hover:border-primary-500 dark:hover:border-primary-400 hover:scale-102'
                   }
                   disabled:opacity-50 disabled:cursor-not-allowed
                 `}
@@ -146,14 +174,20 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
                 aria-pressed={ageRange === range.value}
               >
                 {range.label}
-              </button>
+              </motion.button>
             ))}
           </div>
-        </div>
+        </motion.div>
 
-        {/* Theme Selection */}
-        <div className="bg-white p-6 rounded-2xl border-4 border-primary-300 shadow-lg">
-          <label className="block mb-4 font-kid text-xl font-bold text-primary-700">
+        {/* Optimization 2.2: Enhanced Theme Selection with better visual hierarchy */}
+        <motion.div
+          className="bg-white dark:bg-dark-bg-secondary p-6 rounded-2xl border-4 border-primary-300 dark:border-dark-border-primary shadow-card dark:shadow-card-dark transition-colors duration-250"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5, duration: 0.4 }}
+        >
+          <label className="block mb-4 font-heading text-xl font-bold text-primary-700 dark:text-primary-400 flex items-center gap-2">
+            <span className="text-2xl">🎭</span>
             Choose your adventure!
           </label>
 
@@ -166,11 +200,11 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
             </div>
           )}
 
-          {/* Error state */}
+          {/* Error state with dark mode support */}
           {themesError && !loadingThemes && (
             <div className="text-center py-8">
-              <p className="font-kid text-lg text-red-600 mb-4">{themesError}</p>
-              <button
+              <p className="font-body text-lg text-red-600 dark:text-red-400 mb-4">{themesError}</p>
+              <motion.button
                 type="button"
                 onClick={() => {
                   setLoadingThemes(true);
@@ -183,14 +217,16 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
                     })
                     .finally(() => setLoadingThemes(false));
                 }}
-                className="px-6 py-3 bg-primary-500 text-white font-kid text-lg rounded-xl hover:bg-primary-600 transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-6 py-3 bg-primary-500 dark:bg-primary-600 text-white font-body text-lg rounded-xl hover:bg-primary-600 dark:hover:bg-primary-700 transition-all duration-250 shadow-lg"
               >
                 Try Again
-              </button>
+              </motion.button>
             </div>
           )}
 
-          {/* Themes grid with staggered entry animations - Optimization 2.1 */}
+          {/* Optimization 2.2: Enhanced themes grid with improved cards */}
           {!loadingThemes && !themesError && themes.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {themes.map((theme, i) => (
@@ -201,10 +237,10 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
                   disabled={disabled}
                   style={selectedTheme === theme.id ? getGradientStyle(theme.color) : undefined}
                   className={`
-                    p-6 rounded-xl border-4 transition-colors duration-200 text-left
+                    p-6 rounded-xl border-4 transition-all duration-250 text-left
                     ${selectedTheme === theme.id
-                      ? 'border-white text-white shadow-xl'
-                      : 'bg-white border-gray-300 hover:border-primary-400 shadow-md'
+                      ? 'border-white dark:border-white/80 text-white shadow-card-hover dark:shadow-card-hover-dark'
+                      : 'bg-white dark:bg-dark-bg-tertiary border-gray-300 dark:border-dark-border-secondary hover:border-primary-400 dark:hover:border-primary-500 shadow-card dark:shadow-card-dark'
                     }
                     disabled:opacity-50 disabled:cursor-not-allowed
                   `}
@@ -217,26 +253,31 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
                   aria-pressed={selectedTheme === theme.id}
                 >
                   <div className="text-5xl mb-3">{theme.emoji}</div>
-                  <div className={`font-kid text-xl font-bold mb-2 ${selectedTheme === theme.id ? 'text-white' : 'text-gray-800'}`}>
+                  <div className={`font-heading text-xl font-bold mb-2 ${selectedTheme === theme.id ? 'text-white' : 'text-gray-800 dark:text-dark-text-primary'}`}>
                     {theme.name}
                   </div>
-                  <div className={`font-kid text-sm ${selectedTheme === theme.id ? 'text-white/90' : 'text-gray-600'}`}>
+                  <div className={`font-body text-sm leading-relaxed ${selectedTheme === theme.id ? 'text-white/90' : 'text-gray-600 dark:text-dark-text-secondary'}`}>
                     {theme.description}
                   </div>
                 </motion.button>
               ))}
             </div>
           )}
-        </div>
+        </motion.div>
 
-        {/* Start Button with micro-interactions - Optimization 2.1 */}
-        <div className="text-center">
+        {/* Optimization 2.2 & 2.3: Enhanced Start Button with better typography */}
+        <motion.div
+          className="text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
+        >
           <motion.button
             type="submit"
             disabled={!isValid || disabled}
             whileHover={isValid && !disabled ? {
               scale: 1.1,
-              boxShadow: "0 20px 40px rgba(0, 0, 0, 0.2)"
+              boxShadow: "0 20px 40px rgba(0, 0, 0, 0.3)"
             } : undefined}
             whileTap={isValid && !disabled ? { scale: 0.95 } : undefined}
             transition={{
@@ -245,17 +286,17 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
               damping: 17
             }}
             className={`
-              px-12 py-6 rounded-2xl border-4 font-kid text-2xl font-bold transition-colors duration-200
+              px-12 py-6 rounded-2xl border-4 font-heading text-2xl font-bold transition-all duration-250
               ${isValid && !disabled
-                ? 'bg-gradient-to-r from-green-400 to-green-500 border-green-600 text-white hover:from-green-500 hover:to-green-600 shadow-xl'
-                : 'bg-gray-300 border-gray-400 text-gray-500 cursor-not-allowed'
+                ? 'bg-gradient-to-r from-green-400 to-green-500 dark:from-green-500 dark:to-green-600 border-green-600 dark:border-green-700 text-white hover:from-green-500 hover:to-green-600 dark:hover:from-green-600 dark:hover:to-green-700 shadow-card-hover dark:shadow-card-hover-dark'
+                : 'bg-gray-300 dark:bg-dark-bg-tertiary border-gray-400 dark:border-dark-border-secondary text-gray-500 dark:text-dark-text-tertiary cursor-not-allowed'
               }
             `}
             aria-label="Start adventure"
           >
             🎉 Start My Adventure! 🎉
           </motion.button>
-        </div>
+        </motion.div>
       </form>
     </div>
   );

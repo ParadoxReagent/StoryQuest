@@ -1,7 +1,9 @@
 /**
  * LoadingStoryBook Component
  * Animated story book opening effect for loading states
- * Part of Optimization 2.1: Advanced Micro-Interactions
+ * Optimization 2.1: Advanced Micro-Interactions
+ * Optimization 2.3: Typography & Visual Hierarchy
+ * Optimization 2.4: Dark Mode Support
  */
 
 import React from 'react';
@@ -85,9 +87,9 @@ export const LoadingStoryBook: React.FC<LoadingStoryBookProps> = ({
         ))}
       </div>
 
-      {/* Loading Message */}
+      {/* Loading Message - Optimization 2.3 & 2.4 */}
       <motion.p
-        className="font-kid text-lg md:text-xl font-bold text-primary-700 text-center"
+        className="font-heading text-lg md:text-xl font-bold text-primary-700 dark:text-primary-400 text-center transition-colors duration-250"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -95,12 +97,12 @@ export const LoadingStoryBook: React.FC<LoadingStoryBookProps> = ({
         {message}
       </motion.p>
 
-      {/* Animated Dots */}
+      {/* Animated Dots - Optimization 2.4 */}
       <div className="flex gap-1 mt-2">
         {[0, 1, 2].map((i) => (
           <motion.span
             key={i}
-            className="text-primary-500 text-xl font-bold"
+            className="text-primary-500 dark:text-primary-400 text-xl font-bold transition-colors duration-250"
             animate={{ opacity: [0, 1, 0] }}
             transition={{
               duration: 1.5,

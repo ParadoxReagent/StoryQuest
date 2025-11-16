@@ -1,7 +1,9 @@
 /**
  * StoryView Component
  * Displays the current scene and player choices
- * Enhanced with scene transition animations (Optimization 2.1)
+ * Optimization 2.1: Enhanced with scene transition animations
+ * Optimization 2.3: Typography & Visual Hierarchy
+ * Optimization 2.4: Dark Mode Support
  */
 
 import React from 'react';
@@ -72,26 +74,26 @@ export const StoryView: React.FC<StoryViewProps> = ({
       {/* Story Content Area (scrollable on mobile) */}
       <div className="flex-1 lg:flex-none overflow-y-auto lg:overflow-visible pb-4 lg:pb-0">
         <div className="space-y-4 md:space-y-6 max-w-4xl mx-auto">
-          {/* Story Header */}
+          {/* Story Header - Optimization 2.3 & 2.4: Enhanced typography and dark mode */}
           {story.metadata && (
-            <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white p-4 md:p-6 rounded-2xl shadow-lg">
+            <div className="bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 text-white p-4 md:p-6 rounded-2xl shadow-card dark:shadow-card-dark transition-colors duration-250">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 md:gap-3">
                   <span className="text-3xl md:text-4xl">{themeEmoji}</span>
                   <div>
-                    <h2 className="font-kid text-lg md:text-2xl font-bold">
+                    <h2 className="font-heading text-lg md:text-2xl font-bold">
                       {story.metadata.theme.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </h2>
                     {turnLabel && (
-                      <p className="font-kid text-sm md:text-base text-primary-100">
+                      <p className="font-body text-sm md:text-base text-primary-100 dark:text-primary-200">
                         {turnLabel}
                       </p>
                     )}
                   </div>
                 </div>
                 <div className="text-right hidden sm:block">
-                  <p className="font-kid text-sm text-primary-100">Session ID</p>
-                  <p className="font-kid text-xs text-primary-200 font-mono">
+                  <p className="font-body text-sm text-primary-100 dark:text-primary-200">Session ID</p>
+                  <p className="font-body text-xs text-primary-200 dark:text-primary-300 font-mono">
                     {story.session_id.substring(0, 8)}...
                   </p>
                 </div>
@@ -99,12 +101,11 @@ export const StoryView: React.FC<StoryViewProps> = ({
             </div>
           )}
 
-          {/* Current Scene - Compact Display with Scene Transitions */}
-          <div className="bg-white p-4 md:p-6 lg:p-8 rounded-2xl border-4 border-primary-300 shadow-xl">
+          {/* Current Scene - Optimization 2.3 & 2.4: Enhanced with dark mode */}
+          <div className="bg-white dark:bg-dark-bg-secondary p-4 md:p-6 lg:p-8 rounded-2xl border-4 border-primary-300 dark:border-dark-border-primary shadow-xl dark:shadow-card-dark transition-colors duration-250">
             <div className="prose prose-lg max-w-none story-text-container">
               {/* Max height for story text with scrolling - Optimization 1.2 */}
               <div className="min-h-[4rem] max-h-[60vh] overflow-y-auto">
-                {/* Responsive font sizes - Optimization 1.2 */}
                 {/* Scene Transition Animations - Optimization 2.1 */}
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -114,7 +115,8 @@ export const StoryView: React.FC<StoryViewProps> = ({
                     exit={{ opacity: 0, y: -20, filter: "blur(10px)" }}
                     transition={{ duration: 0.6, ease: "easeOut" }}
                   >
-                    <p className="font-kid text-lg sm:text-xl md:text-2xl leading-normal text-gray-800 whitespace-pre-wrap story-text-smooth">
+                    {/* Optimization 2.3: Enhanced typography with font-body */}
+                    <p className="font-body text-lg sm:text-xl md:text-2xl leading-normal text-gray-800 dark:text-dark-text-primary whitespace-pre-wrap story-text-smooth transition-colors duration-250">
                       {displayText}
                     </p>
                   </motion.div>
@@ -123,26 +125,26 @@ export const StoryView: React.FC<StoryViewProps> = ({
             </div>
           </div>
 
-          {/* Loading Indicator - Animated Story Book (Optimization 2.1) */}
+          {/* Loading Indicator - Optimization 2.1 & 2.4: With dark mode */}
           {disabled && !story.current_scene.text && !isFinished && (
-            <div className="bg-gradient-to-br from-yellow-50 to-primary-50 border-4 border-primary-300 rounded-2xl p-4 md:p-6 shadow-xl">
+            <div className="bg-gradient-to-br from-yellow-50 to-primary-50 dark:from-yellow-900/20 dark:to-primary-900/20 border-4 border-primary-300 dark:border-primary-600 rounded-2xl p-4 md:p-6 shadow-xl dark:shadow-card-dark transition-colors duration-250">
               <LoadingStoryBook message="Creating your story... ✨" />
             </div>
           )}
 
-          {/* Ending message */}
+          {/* Ending message - Optimization 2.3 & 2.4 */}
           {isFinished && (
-            <div className="bg-gradient-to-r from-primary-100 to-primary-200 border-4 border-primary-300 rounded-2xl p-4 md:p-6 shadow-lg text-center">
-              <p className="font-kid text-lg md:text-xl text-primary-800">
+            <div className="bg-gradient-to-r from-primary-100 to-primary-200 dark:from-primary-900/40 dark:to-primary-800/40 border-4 border-primary-300 dark:border-primary-600 rounded-2xl p-4 md:p-6 shadow-lg dark:shadow-card-dark text-center transition-colors duration-250">
+              <p className="font-body text-lg md:text-xl text-primary-800 dark:text-primary-200">
                 The adventure has wrapped up with a happy ending! Start a new story to explore another world.
               </p>
             </div>
           )}
 
-          {/* Choices for Desktop - Inline */}
+          {/* Choices for Desktop - Inline - Optimization 2.3 & 2.4 */}
           {!disabled && !isStreaming && !isFinished && (
             <div className="hidden lg:block space-y-4">
-              <h3 className="font-kid text-2xl font-bold text-center text-primary-700">
+              <h3 className="font-heading text-2xl font-bold text-center text-primary-700 dark:text-primary-400 transition-colors duration-250">
                 What would you like to do? 🤔
               </h3>
 
@@ -170,11 +172,11 @@ export const StoryView: React.FC<StoryViewProps> = ({
         </div>
       </div>
 
-      {/* Fixed Choice Bar - Mobile/Tablet - Optimization 1.1 */}
+      {/* Fixed Choice Bar - Mobile/Tablet - Optimization 1.1, 2.3 & 2.4 */}
       {!disabled && !isStreaming && !isFinished && (
-        <div className="lg:hidden fixed inset-x-0 bottom-0 z-30 border-t-4 border-primary-300 bg-white/95 backdrop-blur-sm shadow-2xl">
+        <div className="lg:hidden fixed inset-x-0 bottom-0 z-30 border-t-4 border-primary-300 dark:border-dark-border-primary bg-white/95 dark:bg-dark-bg-secondary/95 backdrop-blur-sm shadow-2xl dark:shadow-card-dark transition-colors duration-250">
           <div className="max-w-4xl mx-auto p-4 space-y-3">
-            <h3 className="font-kid text-lg sm:text-xl font-bold text-center text-primary-700">
+            <h3 className="font-heading text-lg sm:text-xl font-bold text-center text-primary-700 dark:text-primary-400 transition-colors duration-250">
               What would you like to do? 🤔
             </h3>
 
