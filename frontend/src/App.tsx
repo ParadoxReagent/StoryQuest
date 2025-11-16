@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { startStory, continueStory } from './services/api';
+import { startStoryStream, continueStoryStream } from './services/api';
 import type { StoryResponse } from './types/api';
 import ThemeSelection from './components/ThemeSelection';
 import StoryView from './components/StoryView';
@@ -40,6 +40,8 @@ function App() {
   const [history, setHistory] = useState<Turn[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [streamingText, setStreamingText] = useState<string>('');
+  const [isStreaming, setIsStreaming] = useState(false);
 
   /**
    * Start a new story
@@ -48,23 +50,67 @@ function App() {
     setIsLoading(true);
     setError(null);
     setAppState('loading');
+    setStreamingText('');
+    setIsStreaming(true);
 
     try {
-      const response = await startStory({ player_name: playerName, age_range: ageRange, theme });
-      setStory(response);
-      setHistory([
+      let sessionId = '';
+      let finalChoices: any[] = [];
+      let finalMetadata: any = null;
+      let accumulatedText = '';
+
+      await startStoryStream(
+        { player_name: playerName, age_range: ageRange, theme },
         {
-          scene_text: response.current_scene.text,
-          turn_number: 0,
-        },
-      ]);
-      setAppState('playing');
+          onSessionStart: (sid) => {
+            sessionId = sid;
+            setAppState('playing');
+          },
+          onTextChunk: (chunk) => {
+            accumulatedText += chunk;
+            setStreamingText(accumulatedText);
+          },
+          onComplete: (choices, metadata) => {
+            finalChoices = choices;
+            finalMetadata = metadata;
+          },
+          onError: (errorMsg) => {
+            setError(errorMsg);
+            setAppState('error');
+          },
+        }
+      );
+
+      // After streaming completes, construct the story response
+      if (finalChoices.length > 0) {
+        const response: StoryResponse = {
+          session_id: sessionId,
+          current_scene: {
+            text: accumulatedText,
+          },
+          choices: finalChoices.map((c) => ({
+            choice_id: c.choice_id,
+            text: c.text,
+          })),
+          story_summary: '',
+          metadata: finalMetadata,
+        };
+
+        setStory(response);
+        setHistory([
+          {
+            scene_text: accumulatedText,
+            turn_number: 0,
+          },
+        ]);
+      }
     } catch (err) {
       console.error('Failed to start story:', err);
       setError(getErrorMessage(err) || 'Failed to start story. Please try again.');
       setAppState('error');
     } finally {
       setIsLoading(false);
+      setIsStreaming(false);
     }
   };
 
@@ -76,30 +122,69 @@ function App() {
 
     setIsLoading(true);
     setError(null);
+    setStreamingText('');
+    setIsStreaming(true);
+
+    // Add previous turn to history immediately
+    const previousTurn: Turn = {
+      scene_text: story.current_scene.text,
+      player_choice: choice.text,
+      turn_number: story.metadata?.turns || 0,
+    };
+    setHistory((prev) => [...prev, previousTurn]);
 
     try {
-      const response = await continueStory({
-        session_id: story.session_id,
-        choice_id: choice.choice_id,
-        choice_text: choice.text,
-        story_summary: story.story_summary,
-      });
+      let finalChoices: any[] = [];
+      let finalMetadata: any = null;
+      let accumulatedText = '';
 
-      // Add previous turn to history
-      const previousTurn: Turn = {
-        scene_text: story.current_scene.text,
-        player_choice: choice.text,
-        turn_number: story.metadata?.turns || 0,
-      };
+      await continueStoryStream(
+        {
+          session_id: story.session_id,
+          choice_id: choice.choice_id,
+          choice_text: choice.text,
+          story_summary: story.story_summary,
+        },
+        {
+          onTextChunk: (chunk) => {
+            accumulatedText += chunk;
+            setStreamingText(accumulatedText);
+          },
+          onComplete: (choices, metadata) => {
+            finalChoices = choices;
+            finalMetadata = metadata;
+          },
+          onError: (errorMsg) => {
+            setError(errorMsg);
+            setAppState('error');
+          },
+        }
+      );
 
-      setHistory((prev) => [...prev, previousTurn]);
-      setStory(response);
+      // After streaming completes, update the story
+      if (finalChoices.length > 0) {
+        const response: StoryResponse = {
+          session_id: story.session_id,
+          current_scene: {
+            text: accumulatedText,
+          },
+          choices: finalChoices.map((c) => ({
+            choice_id: c.choice_id,
+            text: c.text,
+          })),
+          story_summary: story.story_summary,
+          metadata: finalMetadata,
+        };
+
+        setStory(response);
+      }
     } catch (err) {
       console.error('Failed to continue story:', err);
       setError(getErrorMessage(err) || 'Failed to continue story. Please try again.');
       setAppState('error');
     } finally {
       setIsLoading(false);
+      setIsStreaming(false);
     }
   };
 
@@ -111,29 +196,68 @@ function App() {
 
     setIsLoading(true);
     setError(null);
+    setStreamingText('');
+    setIsStreaming(true);
+
+    // Add previous turn to history immediately
+    const previousTurn: Turn = {
+      scene_text: story.current_scene.text,
+      custom_input: input,
+      turn_number: story.metadata?.turns || 0,
+    };
+    setHistory((prev) => [...prev, previousTurn]);
 
     try {
-      const response = await continueStory({
-        session_id: story.session_id,
-        custom_input: input,
-        story_summary: story.story_summary,
-      });
+      let finalChoices: any[] = [];
+      let finalMetadata: any = null;
+      let accumulatedText = '';
 
-      // Add previous turn to history
-      const previousTurn: Turn = {
-        scene_text: story.current_scene.text,
-        custom_input: input,
-        turn_number: story.metadata?.turns || 0,
-      };
+      await continueStoryStream(
+        {
+          session_id: story.session_id,
+          custom_input: input,
+          story_summary: story.story_summary,
+        },
+        {
+          onTextChunk: (chunk) => {
+            accumulatedText += chunk;
+            setStreamingText(accumulatedText);
+          },
+          onComplete: (choices, metadata) => {
+            finalChoices = choices;
+            finalMetadata = metadata;
+          },
+          onError: (errorMsg) => {
+            setError(errorMsg);
+            setAppState('error');
+          },
+        }
+      );
 
-      setHistory((prev) => [...prev, previousTurn]);
-      setStory(response);
+      // After streaming completes, update the story
+      if (finalChoices.length > 0) {
+        const response: StoryResponse = {
+          session_id: story.session_id,
+          current_scene: {
+            text: accumulatedText,
+          },
+          choices: finalChoices.map((c) => ({
+            choice_id: c.choice_id,
+            text: c.text,
+          })),
+          story_summary: story.story_summary,
+          metadata: finalMetadata,
+        };
+
+        setStory(response);
+      }
     } catch (err) {
       console.error('Failed to continue story:', err);
       setError(getErrorMessage(err) || 'Failed to continue story. Please try again.');
       setAppState('error');
     } finally {
       setIsLoading(false);
+      setIsStreaming(false);
     }
   };
 
@@ -208,6 +332,8 @@ function App() {
               onChoiceClick={handleChoice}
               onCustomInput={handleCustomInput}
               disabled={isLoading}
+              streamingText={streamingText}
+              isStreaming={isStreaming}
             />
           </div>
         )}

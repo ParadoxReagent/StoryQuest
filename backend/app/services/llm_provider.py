@@ -6,7 +6,7 @@ Phase 2: Swappable interface for local vs. cloud LLMs
 import json
 import logging
 from abc import ABC, abstractmethod
-from typing import Dict, Optional
+from typing import AsyncGenerator, Dict, Optional
 
 import httpx
 from pydantic import ValidationError
@@ -53,6 +53,30 @@ class LLMProvider(ABC):
             True if healthy, False otherwise
         """
         pass
+
+    async def generate_story_continuation_stream(
+        self,
+        prompt: str,
+        system_message: Optional[str] = None,
+        max_tokens: int = 500,
+        temperature: float = 0.8
+    ) -> AsyncGenerator[str, None]:
+        """
+        Generate a story continuation from the LLM with streaming.
+
+        Args:
+            prompt: The prompt to send to the LLM
+            system_message: Optional system message for the LLM
+            max_tokens: Maximum tokens to generate
+            temperature: Temperature for generation (0.0-1.0)
+
+        Yields:
+            Chunks of the response text as they arrive
+
+        Raises:
+            NotImplementedError: If streaming is not supported by this provider
+        """
+        raise NotImplementedError("Streaming not supported by this provider")
 
     def _parse_llm_response(self, response_text: str) -> LLMStoryResponse:
         """
@@ -500,6 +524,73 @@ class OpenRouterProvider(LLMProvider):
             logger.warning(f"OpenRouter health check failed: {e}")
             return False
 
+    async def generate_story_continuation_stream(
+        self,
+        prompt: str,
+        system_message: Optional[str] = None,
+        max_tokens: int = 500,
+        temperature: float = 0.8
+    ) -> AsyncGenerator[str, None]:
+        """Generate story continuation using OpenRouter with streaming."""
+        try:
+            messages = []
+            if system_message:
+                messages.append({"role": "system", "content": system_message})
+            messages.append({"role": "user", "content": prompt})
+
+            payload = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "stream": True,  # Enable streaming
+            }
+
+            # Call OpenRouter API with streaming
+            async with self.client.stream(
+                "POST",
+                "https://openrouter.ai/api/v1/chat/completions",
+                json=payload
+            ) as response:
+                response.raise_for_status()
+
+                # Process SSE stream
+                async for line in response.aiter_lines():
+                    if not line.strip():
+                        continue
+
+                    # SSE format: "data: {json}"
+                    if line.startswith("data: "):
+                        data_str = line[6:]  # Remove "data: " prefix
+
+                        # Check for stream end
+                        if data_str.strip() == "[DONE]":
+                            break
+
+                        try:
+                            # Parse the JSON chunk
+                            chunk_data = json.loads(data_str)
+
+                            # Extract content delta from OpenAI-compatible format
+                            if "choices" in chunk_data and len(chunk_data["choices"]) > 0:
+                                delta = chunk_data["choices"][0].get("delta", {})
+                                content = delta.get("content", "")
+
+                                if content:
+                                    yield content
+
+                        except json.JSONDecodeError:
+                            # Skip malformed chunks
+                            logger.warning(f"Failed to parse streaming chunk: {data_str}")
+                            continue
+
+        except httpx.HTTPError as e:
+            logger.error(f"OpenRouter streaming API error: {e}")
+            raise Exception(f"Failed to stream story with OpenRouter: {e}")
+        except Exception:
+            logger.exception("Unexpected error in OpenRouter streaming")
+            raise
+
     async def close(self):
         await self.client.aclose()
 
@@ -578,6 +669,75 @@ class LMStudioProvider(LLMProvider):
         except Exception as e:
             logger.warning(f"LM Studio health check failed: {e}")
             return False
+
+    async def generate_story_continuation_stream(
+        self,
+        prompt: str,
+        system_message: Optional[str] = None,
+        max_tokens: int = 500,
+        temperature: float = 0.8
+    ) -> AsyncGenerator[str, None]:
+        """Generate story continuation using LM Studio with streaming."""
+        try:
+            # Prepare messages (OpenAI-compatible format)
+            messages = []
+            if system_message:
+                messages.append({"role": "system", "content": system_message})
+            messages.append({"role": "user", "content": prompt})
+
+            # Prepare request payload with streaming enabled
+            payload = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "stream": True,  # Enable streaming
+            }
+
+            # Call LM Studio API with streaming
+            async with self.client.stream(
+                "POST",
+                f"{self.base_url}/v1/chat/completions",
+                json=payload
+            ) as response:
+                response.raise_for_status()
+
+                # Process SSE stream
+                async for line in response.aiter_lines():
+                    if not line.strip():
+                        continue
+
+                    # SSE format: "data: {json}"
+                    if line.startswith("data: "):
+                        data_str = line[6:]  # Remove "data: " prefix
+
+                        # Check for stream end
+                        if data_str.strip() == "[DONE]":
+                            break
+
+                        try:
+                            # Parse the JSON chunk
+                            chunk_data = json.loads(data_str)
+
+                            # Extract content delta from OpenAI-compatible format
+                            if "choices" in chunk_data and len(chunk_data["choices"]) > 0:
+                                delta = chunk_data["choices"][0].get("delta", {})
+                                content = delta.get("content", "")
+
+                                if content:
+                                    yield content
+
+                        except json.JSONDecodeError:
+                            # Skip malformed chunks
+                            logger.warning(f"Failed to parse streaming chunk: {data_str}")
+                            continue
+
+        except httpx.HTTPError as e:
+            logger.error(f"LM Studio streaming API error: {e}")
+            raise Exception(f"Failed to stream story with LM Studio: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error in LM Studio streaming: {e}")
+            raise
 
     async def close(self):
         """Close the HTTP client."""
