@@ -129,14 +129,25 @@ class Settings(BaseSettings):
     """Application settings with environment variable support."""
 
     # Environment variables take precedence
+    # API Keys
     OPENAI_API_KEY: Optional[str] = None
     ANTHROPIC_API_KEY: Optional[str] = None
     GEMINI_API_KEY: Optional[str] = None
     OPENROUTER_API_KEY: Optional[str] = None
+
+    # Model names
+    OLLAMA_MODEL: Optional[str] = None
+    OPENAI_MODEL: Optional[str] = None
+    ANTHROPIC_MODEL: Optional[str] = None
     GEMINI_MODEL: Optional[str] = None
     OPENROUTER_MODEL: Optional[str] = None
+
+    # Provider-specific settings
+    OLLAMA_BASE_URL: Optional[str] = None
     OPENROUTER_SITE_URL: Optional[str] = None
     OPENROUTER_APP_NAME: Optional[str] = None
+
+    # Other settings
     DATABASE_URL: Optional[str] = None
     LLM_PROVIDER: Optional[str] = None
 
@@ -185,14 +196,31 @@ def load_config(config_path: Optional[Path] = None) -> AppConfig:
         config_dict.setdefault("llm", {})
         config_dict["llm"]["provider"] = settings.LLM_PROVIDER
 
+    # Ollama configuration
+    if settings.OLLAMA_BASE_URL:
+        config_dict.setdefault("llm", {}).setdefault("ollama", {})
+        config_dict["llm"]["ollama"]["base_url"] = settings.OLLAMA_BASE_URL
+    if settings.OLLAMA_MODEL:
+        config_dict.setdefault("llm", {}).setdefault("ollama", {})
+        config_dict["llm"]["ollama"]["model"] = settings.OLLAMA_MODEL
+
+    # OpenAI configuration
     if settings.OPENAI_API_KEY:
         config_dict.setdefault("llm", {}).setdefault("openai", {})
         config_dict["llm"]["openai"]["api_key"] = settings.OPENAI_API_KEY
+    if settings.OPENAI_MODEL:
+        config_dict.setdefault("llm", {}).setdefault("openai", {})
+        config_dict["llm"]["openai"]["model"] = settings.OPENAI_MODEL
 
+    # Anthropic configuration
     if settings.ANTHROPIC_API_KEY:
         config_dict.setdefault("llm", {}).setdefault("anthropic", {})
         config_dict["llm"]["anthropic"]["api_key"] = settings.ANTHROPIC_API_KEY
+    if settings.ANTHROPIC_MODEL:
+        config_dict.setdefault("llm", {}).setdefault("anthropic", {})
+        config_dict["llm"]["anthropic"]["model"] = settings.ANTHROPIC_MODEL
 
+    # Gemini configuration
     if settings.GEMINI_API_KEY:
         config_dict.setdefault("llm", {}).setdefault("gemini", {})
         config_dict["llm"]["gemini"]["api_key"] = settings.GEMINI_API_KEY
@@ -200,6 +228,7 @@ def load_config(config_path: Optional[Path] = None) -> AppConfig:
         config_dict.setdefault("llm", {}).setdefault("gemini", {})
         config_dict["llm"]["gemini"]["model"] = settings.GEMINI_MODEL
 
+    # OpenRouter configuration
     if settings.OPENROUTER_API_KEY:
         config_dict.setdefault("llm", {}).setdefault("openrouter", {})
         config_dict["llm"]["openrouter"]["api_key"] = settings.OPENROUTER_API_KEY
