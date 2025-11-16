@@ -190,7 +190,12 @@ class StoryEngine:
         # Determine player action
         if custom_input:
             # Validate custom input
-            is_safe, result = await self.safety.filter_user_input(custom_input)
+            filter_result = await self.safety.filter_user_input(custom_input)
+            # Handle both basic (2 values) and enhanced (3 values) safety filter
+            if len(filter_result) == 3:
+                is_safe, result, violation = filter_result
+            else:
+                is_safe, result = filter_result
             if not is_safe:
                 raise ValueError(f"Input rejected: {result}")
             player_action = result
@@ -381,10 +386,15 @@ class StoryEngine:
                 )
 
                 # Validate output
-                is_valid = await self.safety.validate_llm_output(
+                validation_result = await self.safety.validate_llm_output(
                     scene_text=llm_response.scene_text,
                     choices=llm_response.choices
                 )
+                # Handle both basic (bool) and enhanced (tuple) safety filter
+                if isinstance(validation_result, tuple):
+                    is_valid, violation = validation_result
+                else:
+                    is_valid = validation_result
 
                 if is_valid:
                     return llm_response
