@@ -89,6 +89,201 @@ export async function healthCheck(): Promise<{ status: string; service: string }
 }
 
 /**
+ * Streaming event types
+ */
+export interface StreamEvent {
+  type: 'session_start' | 'text_chunk' | 'complete' | 'error';
+  session_id?: string;
+  content?: string;
+  choices?: Array<{ choice_id: string; text: string }>;
+  metadata?: {
+    theme: string;
+    turns: number;
+    session_id: string;
+  };
+  message?: string;
+}
+
+export interface StreamCallbacks {
+  onSessionStart?: (sessionId: string) => void;
+  onTextChunk?: (chunk: string) => void;
+  onComplete?: (choices: any[], metadata: any) => void;
+  onError?: (error: string) => void;
+}
+
+/**
+ * Start a new story with streaming
+ */
+export async function startStoryStream(
+  request: StartStoryRequest,
+  callbacks: StreamCallbacks
+): Promise<void> {
+  const url = `${API_BASE_URL}/api/v1/story/start/stream`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('No response body');
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) break;
+
+      // Decode the chunk and add to buffer
+      buffer += decoder.decode(value, { stream: true });
+
+      // Process complete lines
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6); // Remove "data: " prefix
+
+          try {
+            const event: StreamEvent = JSON.parse(data);
+
+            switch (event.type) {
+              case 'session_start':
+                if (event.session_id && callbacks.onSessionStart) {
+                  callbacks.onSessionStart(event.session_id);
+                }
+                break;
+
+              case 'text_chunk':
+                if (event.content && callbacks.onTextChunk) {
+                  callbacks.onTextChunk(event.content);
+                }
+                break;
+
+              case 'complete':
+                if (event.choices && event.metadata && callbacks.onComplete) {
+                  callbacks.onComplete(event.choices, event.metadata);
+                }
+                break;
+
+              case 'error':
+                if (event.message && callbacks.onError) {
+                  callbacks.onError(event.message);
+                }
+                break;
+            }
+          } catch (e) {
+            console.error('Failed to parse SSE event:', e);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Streaming error:', error);
+    if (callbacks.onError) {
+      callbacks.onError(error instanceof Error ? error.message : 'Unknown streaming error');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Continue story with streaming
+ */
+export async function continueStoryStream(
+  request: ContinueStoryRequest,
+  callbacks: StreamCallbacks
+): Promise<void> {
+  const url = `${API_BASE_URL}/api/v1/story/continue/stream`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('No response body');
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) break;
+
+      // Decode the chunk and add to buffer
+      buffer += decoder.decode(value, { stream: true });
+
+      // Process complete lines
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6); // Remove "data: " prefix
+
+          try {
+            const event: StreamEvent = JSON.parse(data);
+
+            switch (event.type) {
+              case 'text_chunk':
+                if (event.content && callbacks.onTextChunk) {
+                  callbacks.onTextChunk(event.content);
+                }
+                break;
+
+              case 'complete':
+                if (event.choices && event.metadata && callbacks.onComplete) {
+                  callbacks.onComplete(event.choices, event.metadata);
+                }
+                break;
+
+              case 'error':
+                if (event.message && callbacks.onError) {
+                  callbacks.onError(event.message);
+                }
+                break;
+            }
+          } catch (e) {
+            console.error('Failed to parse SSE event:', e);
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Streaming error:', error);
+    if (callbacks.onError) {
+      callbacks.onError(error instanceof Error ? error.message : 'Unknown streaming error');
+    }
+    throw error;
+  }
+}
+
+/**
  * Handle API errors
  */
 function handleApiError(error: unknown): void {

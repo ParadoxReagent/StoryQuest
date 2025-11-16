@@ -18,6 +18,8 @@ interface StoryViewProps {
   onChoiceClick: (choice: Choice) => void;
   onCustomInput: (input: string) => void;
   disabled?: boolean;
+  streamingText?: string;
+  isStreaming?: boolean;
 }
 
 export const StoryView: React.FC<StoryViewProps> = ({
@@ -25,6 +27,8 @@ export const StoryView: React.FC<StoryViewProps> = ({
   onChoiceClick,
   onCustomInput,
   disabled = false,
+  streamingText = '',
+  isStreaming = false,
 }) => {
   const themeEmojis: Record<string, string> = {
     space_adventure: '🚀',
@@ -70,7 +74,10 @@ export const StoryView: React.FC<StoryViewProps> = ({
       <div className="bg-white p-8 rounded-2xl border-4 border-primary-300 shadow-xl">
         <div className="prose prose-lg max-w-none">
           <p className="font-kid text-xl leading-relaxed text-gray-800 whitespace-pre-wrap">
-            {story.current_scene.text}
+            {isStreaming ? streamingText : story.current_scene.text}
+            {isStreaming && (
+              <span className="inline-block w-2 h-6 ml-1 bg-primary-600 animate-pulse"></span>
+            )}
           </p>
         </div>
       </div>
@@ -88,7 +95,7 @@ export const StoryView: React.FC<StoryViewProps> = ({
       )}
 
       {/* Choices */}
-      {!disabled && (
+      {!disabled && !isStreaming && (
         <div className="space-y-4">
           <h3 className="font-kid text-2xl font-bold text-center text-primary-700">
             What would you like to do? 🤔

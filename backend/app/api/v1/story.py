@@ -3,21 +3,25 @@ Story API endpoints.
 Phase 6: Enhanced with rate limiting and safety features
 """
 
+import json
 import logging
 from typing import Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.config import get_config
 from app.db.database import get_db_session
+from app.db.models import Session as SessionModel
 from app.models.story import (
     ContinueStoryRequest,
     StartStoryRequest,
     StoryResponse,
 )
 from app.services.llm_factory import create_llm_provider
+from app.services.prompts import StoryPrompts
 from app.services.safety_filter import SafetyFilter
 from app.services.safety_filter_enhanced import EnhancedSafetyFilter
 from app.services.story_engine import StoryEngine
@@ -200,6 +204,271 @@ async def continue_story(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to continue story. Please try again."
         )
+
+
+@router.post("/start/stream")
+async def start_story_stream(
+    http_request: Request,
+    request: StartStoryRequest,
+    db: Session = Depends(get_db_session)
+):
+    """
+    Start a new story session with streaming response.
+
+    Returns Server-Sent Events (SSE) with:
+    - Stream of text chunks as they're generated
+    - Final event with choices and metadata
+    """
+    config = get_config()
+
+    # Rate limiting check (if enabled)
+    if config.safety.enable_rate_limiting:
+        rate_limiter = get_rate_limiter()
+        client_ip = rate_limiter.get_client_ip(http_request)
+
+        is_allowed, retry_after = rate_limiter.check_start_story_rate_limit(client_ip)
+        if not is_allowed:
+            logger.warning(f"Rate limit exceeded for IP {client_ip} on start_story_stream")
+            raise RateLimitExceeded(retry_after)
+
+        is_allowed, retry_after = rate_limiter.check_ip_rate_limit(client_ip, "start_story")
+        if not is_allowed:
+            logger.warning(f"IP rate limit exceeded for {client_ip}")
+            raise RateLimitExceeded(retry_after)
+
+    async def generate_stream():
+        """Generate SSE stream for story start."""
+        try:
+            # Create LLM provider and prompts
+            llm_provider = create_llm_provider(config)
+            prompts = StoryPrompts()
+
+            # Create session in database
+            session_id = uuid4()
+            db_session_model = SessionModel(
+                id=session_id,
+                player_name=request.player_name,
+                age_range=request.age_range,
+                theme=request.theme,
+                turns=0,
+                is_active=True
+            )
+            db.add(db_session_model)
+            db.flush()
+
+            # Generate prompts
+            prompt = prompts.get_story_start_prompt(
+                request.player_name,
+                request.age_range,
+                request.theme
+            )
+            system_message = prompts.get_system_message(request.age_range)
+
+            # Send initial event with session info
+            yield f"data: {json.dumps({'type': 'session_start', 'session_id': str(session_id)})}\n\n"
+
+            # Accumulate full response for parsing
+            full_response = ""
+
+            # Stream LLM response
+            async for chunk in llm_provider.generate_story_continuation_stream(
+                prompt=prompt,
+                system_message=system_message,
+                max_tokens=500,
+                temperature=0.8
+            ):
+                full_response += chunk
+                # Send text chunk
+                yield f"data: {json.dumps({'type': 'text_chunk', 'content': chunk})}\n\n"
+
+            # Parse complete response to extract scene_text and choices
+            try:
+                # Parse using the provider's method
+                from app.services.llm_provider import LLMProvider
+                llm_base = LLMProvider()
+                llm_response = llm_base._parse_llm_response(full_response)
+
+                # Create choices
+                choices = [
+                    {
+                        "choice_id": choice.choice_id,
+                        "text": choice.text
+                    }
+                    for choice in llm_response.choices
+                ]
+
+                # Save to database
+                from app.db.models import StoryTurn
+                turn = StoryTurn(
+                    id=uuid4(),
+                    session_id=session_id,
+                    turn_number=1,
+                    scene_text=llm_response.scene_text,
+                    choices_json=json.dumps(choices),
+                    story_summary=llm_response.story_summary_update or ""
+                )
+                db.add(turn)
+                db_session_model.turns = 1
+                db_session_model.updated_at = turn.created_at
+                db.commit()
+
+                # Send final event with metadata
+                yield f"data: {json.dumps({'type': 'complete', 'choices': choices, 'metadata': {'theme': request.theme, 'turns': 0, 'session_id': str(session_id)}})}\n\n"
+
+            except Exception as e:
+                logger.error(f"Failed to parse streamed response: {e}")
+                yield f"data: {json.dumps({'type': 'error', 'message': 'Failed to parse story response'})}\n\n"
+
+        except Exception as e:
+            logger.error(f"Error in streaming story start: {e}", exc_info=True)
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+
+    return StreamingResponse(
+        generate_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        }
+    )
+
+
+@router.post("/continue/stream")
+async def continue_story_stream(
+    http_request: Request,
+    request: ContinueStoryRequest,
+    db: Session = Depends(get_db_session)
+):
+    """
+    Continue an existing story with streaming response.
+
+    Returns Server-Sent Events (SSE) with:
+    - Stream of text chunks as they're generated
+    - Final event with choices and metadata
+    """
+    config = get_config()
+
+    # Rate limiting check (if enabled)
+    if config.safety.enable_rate_limiting:
+        rate_limiter = get_rate_limiter()
+        client_ip = rate_limiter.get_client_ip(http_request)
+        session_id_str = str(request.session_id)
+
+        is_allowed, retry_after = rate_limiter.check_session_rate_limit(session_id_str, "continue")
+        if not is_allowed:
+            logger.warning(f"Session rate limit exceeded for session {session_id_str}")
+            raise RateLimitExceeded(retry_after)
+
+        if request.custom_input:
+            is_allowed, retry_after = rate_limiter.check_custom_input_rate_limit(session_id_str)
+            if not is_allowed:
+                logger.warning(f"Custom input rate limit exceeded for session {session_id_str}")
+                raise RateLimitExceeded(retry_after)
+
+        is_allowed, retry_after = rate_limiter.check_ip_rate_limit(client_ip, "continue")
+        if not is_allowed:
+            logger.warning(f"IP rate limit exceeded for {client_ip}")
+            raise RateLimitExceeded(retry_after)
+
+    async def generate_stream():
+        """Generate SSE stream for story continuation."""
+        try:
+            # Create LLM provider and prompts
+            llm_provider = create_llm_provider(config)
+            prompts = StoryPrompts()
+
+            # Load session from database
+            from sqlalchemy import select
+            stmt = select(SessionModel).where(SessionModel.id == request.session_id)
+            result = db.execute(stmt)
+            db_session_model = result.scalar_one_or_none()
+
+            if not db_session_model:
+                yield f"data: {json.dumps({'type': 'error', 'message': 'Session not found'})}\n\n"
+                return
+
+            if not db_session_model.is_active:
+                yield f"data: {json.dumps({'type': 'error', 'message': 'Session is no longer active'})}\n\n"
+                return
+
+            # Get choice text
+            choice_text = request.choice_text if request.choice_text else request.custom_input
+
+            # Generate continuation prompt
+            prompt = prompts.get_story_continuation_prompt(
+                player_name=db_session_model.player_name,
+                age_range=db_session_model.age_range,
+                theme=db_session_model.theme,
+                story_summary=request.story_summary or "",
+                player_choice=choice_text or ""
+            )
+            system_message = prompts.get_system_message(db_session_model.age_range)
+
+            # Accumulate full response for parsing
+            full_response = ""
+
+            # Stream LLM response
+            async for chunk in llm_provider.generate_story_continuation_stream(
+                prompt=prompt,
+                system_message=system_message,
+                max_tokens=500,
+                temperature=0.8
+            ):
+                full_response += chunk
+                # Send text chunk
+                yield f"data: {json.dumps({'type': 'text_chunk', 'content': chunk})}\n\n"
+
+            # Parse complete response
+            try:
+                from app.services.llm_provider import LLMProvider
+                llm_base = LLMProvider()
+                llm_response = llm_base._parse_llm_response(full_response)
+
+                # Create choices
+                choices = [
+                    {
+                        "choice_id": choice.choice_id,
+                        "text": choice.text
+                    }
+                    for choice in llm_response.choices
+                ]
+
+                # Save to database
+                from app.db.models import StoryTurn
+                new_turn_number = db_session_model.turns + 1
+                turn = StoryTurn(
+                    id=uuid4(),
+                    session_id=request.session_id,
+                    turn_number=new_turn_number,
+                    scene_text=llm_response.scene_text,
+                    player_choice=choice_text,
+                    choices_json=json.dumps(choices),
+                    story_summary=llm_response.story_summary_update or request.story_summary or ""
+                )
+                db.add(turn)
+                db_session_model.turns = new_turn_number
+                db_session_model.updated_at = turn.created_at
+                db.commit()
+
+                # Send final event
+                yield f"data: {json.dumps({'type': 'complete', 'choices': choices, 'metadata': {'theme': db_session_model.theme, 'turns': new_turn_number, 'session_id': str(request.session_id)}})}\n\n"
+
+            except Exception as e:
+                logger.error(f"Failed to parse streamed response: {e}")
+                yield f"data: {json.dumps({'type': 'error', 'message': 'Failed to parse story response'})}\n\n"
+
+        except Exception as e:
+            logger.error(f"Error in streaming story continuation: {e}", exc_info=True)
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+
+    return StreamingResponse(
+        generate_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        }
+    )
 
 
 @router.get("/session/{session_id}", response_model=dict)
