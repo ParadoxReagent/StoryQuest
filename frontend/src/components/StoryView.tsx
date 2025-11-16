@@ -65,91 +65,129 @@ export const StoryView: React.FC<StoryViewProps> = ({
     : '';
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Story Header */}
-      {story.metadata && (
-        <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white p-6 rounded-2xl shadow-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-4xl">{themeEmoji}</span>
-              <div>
-                <h2 className="font-kid text-2xl font-bold">
-                  {story.metadata.theme.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                </h2>
-                {turnLabel && (
-                  <p className="font-kid text-primary-100">
-                    {turnLabel}
+    <div className="flex flex-col h-full lg:h-auto">
+      {/* Story Content Area (scrollable on mobile) */}
+      <div className="flex-1 lg:flex-none overflow-y-auto lg:overflow-visible pb-4 lg:pb-0">
+        <div className="space-y-4 md:space-y-6 max-w-4xl mx-auto">
+          {/* Story Header */}
+          {story.metadata && (
+            <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white p-4 md:p-6 rounded-2xl shadow-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 md:gap-3">
+                  <span className="text-3xl md:text-4xl">{themeEmoji}</span>
+                  <div>
+                    <h2 className="font-kid text-lg md:text-2xl font-bold">
+                      {story.metadata.theme.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </h2>
+                    {turnLabel && (
+                      <p className="font-kid text-sm md:text-base text-primary-100">
+                        {turnLabel}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right hidden sm:block">
+                  <p className="font-kid text-sm text-primary-100">Session ID</p>
+                  <p className="font-kid text-xs text-primary-200 font-mono">
+                    {story.session_id.substring(0, 8)}...
                   </p>
-                )}
+                </div>
               </div>
             </div>
-            <div className="text-right">
-              <p className="font-kid text-sm text-primary-100">Session ID</p>
-              <p className="font-kid text-xs text-primary-200 font-mono">
-                {story.session_id.substring(0, 8)}...
-              </p>
+          )}
+
+          {/* Current Scene - Compact Display */}
+          <div className="bg-white p-4 md:p-6 lg:p-8 rounded-2xl border-4 border-primary-300 shadow-xl">
+            <div className="prose prose-lg max-w-none story-text-container">
+              {/* Max height for story text with scrolling - Optimization 1.2 */}
+              <div className="min-h-[4rem] max-h-[60vh] overflow-y-auto">
+                {/* Responsive font sizes - Optimization 1.2 */}
+                <p className="font-kid text-lg sm:text-xl md:text-2xl leading-normal text-gray-800 whitespace-pre-wrap story-text-smooth">
+                  {displayText}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Current Scene */}
-      <div className="bg-white p-8 rounded-2xl border-4 border-primary-300 shadow-xl">
-        <div className="prose prose-lg max-w-none story-text-container">
-          <div className="min-h-[6rem]">
-            <p className="font-kid text-xl leading-relaxed text-gray-800 whitespace-pre-wrap story-text-smooth">
-              {displayText}
-            </p>
-          </div>
+          {/* Loading Indicator - Only show during initial load, not during streaming */}
+          {disabled && !story.current_scene.text && !isFinished && (
+            <div className="bg-yellow-50 border-4 border-yellow-300 rounded-2xl p-4 md:p-6 shadow-lg story-scene-enter">
+              <div className="flex items-center justify-center gap-3">
+                <div className="animate-spin rounded-full h-6 w-6 md:h-8 md:w-8 border-4 border-yellow-500 border-t-transparent"></div>
+                <p className="font-kid text-lg md:text-xl font-bold text-yellow-700">
+                  Creating your story... ✨
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Ending message */}
+          {isFinished && (
+            <div className="bg-gradient-to-r from-primary-100 to-primary-200 border-4 border-primary-300 rounded-2xl p-4 md:p-6 shadow-lg text-center">
+              <p className="font-kid text-lg md:text-xl text-primary-800">
+                The adventure has wrapped up with a happy ending! Start a new story to explore another world.
+              </p>
+            </div>
+          )}
+
+          {/* Choices for Desktop - Inline */}
+          {!disabled && !isStreaming && !isFinished && (
+            <div className="hidden lg:block space-y-4">
+              <h3 className="font-kid text-2xl font-bold text-center text-primary-700">
+                What would you like to do? 🤔
+              </h3>
+
+              <div className="space-y-3">
+                {story.choices.map((choice) => (
+                  <ChoiceButton
+                    key={choice.choice_id}
+                    choice={choice}
+                    onClick={() => onChoiceClick(choice)}
+                    disabled={disabled}
+                  />
+                ))}
+              </div>
+
+              {/* Custom Input */}
+              <div className="pt-2">
+                <CustomInput
+                  onSubmit={onCustomInput}
+                  disabled={disabled}
+                  maxLength={200}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Loading Indicator - Only show during initial load, not during streaming */}
-      {disabled && !story.current_scene.text && !isFinished && (
-        <div className="bg-yellow-50 border-4 border-yellow-300 rounded-2xl p-6 shadow-lg story-scene-enter">
-          <div className="flex items-center justify-center gap-3">
-            <div className="animate-spin rounded-full h-8 w-8 border-4 border-yellow-500 border-t-transparent"></div>
-            <p className="font-kid text-xl font-bold text-yellow-700">
-              Creating your story... ✨
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Ending message */}
-      {isFinished && (
-        <div className="bg-gradient-to-r from-primary-100 to-primary-200 border-4 border-primary-300 rounded-2xl p-6 shadow-lg text-center">
-          <p className="font-kid text-xl text-primary-800">
-            The adventure has wrapped up with a happy ending! Start a new story to explore another world.
-          </p>
-        </div>
-      )}
-
-      {/* Choices */}
+      {/* Fixed Choice Bar - Mobile/Tablet - Optimization 1.1 */}
       {!disabled && !isStreaming && !isFinished && (
-        <div className="space-y-4">
-          <h3 className="font-kid text-2xl font-bold text-center text-primary-700">
-            What would you like to do? 🤔
-          </h3>
+        <div className="lg:hidden flex-none border-t-4 border-primary-300 bg-white/95 backdrop-blur-sm shadow-2xl">
+          <div className="max-w-4xl mx-auto p-4 space-y-3">
+            <h3 className="font-kid text-lg sm:text-xl font-bold text-center text-primary-700">
+              What would you like to do? 🤔
+            </h3>
 
-          <div className="space-y-3">
-            {story.choices.map((choice) => (
-              <ChoiceButton
-                key={choice.choice_id}
-                choice={choice}
-                onClick={() => onChoiceClick(choice)}
+            <div className="space-y-2">
+              {story.choices.map((choice) => (
+                <ChoiceButton
+                  key={choice.choice_id}
+                  choice={choice}
+                  onClick={() => onChoiceClick(choice)}
+                  disabled={disabled}
+                />
+              ))}
+            </div>
+
+            {/* Custom Input */}
+            <div>
+              <CustomInput
+                onSubmit={onCustomInput}
                 disabled={disabled}
+                maxLength={200}
               />
-            ))}
-          </div>
-
-          {/* Custom Input */}
-          <div className="pt-2">
-            <CustomInput
-              onSubmit={onCustomInput}
-              disabled={disabled}
-              maxLength={200}
-            />
+            </div>
           </div>
         </div>
       )}
