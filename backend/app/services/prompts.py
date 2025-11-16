@@ -18,6 +18,7 @@ class StoryPrompts:
     ) -> str:
         """
         Generate a prompt for continuing the story.
+        Phase 6: Enhanced with stronger safety instructions.
 
         Args:
             age_range: Target age range (e.g., "6-8", "9-12")
@@ -36,14 +37,35 @@ STORY SO FAR:
 PLAYER ACTION:
 {player_choice}
 
-RULES:
-1. Keep content G-rated: no violence, scary themes, or adult content
-2. Write 2-4 sentences describing what happens next
-3. Generate exactly 3 fun, age-appropriate choices for what to do next
-4. Use playful, encouraging language
-5. Include learning opportunities (curiosity, problem-solving, kindness)
-6. Make {player_name} feel heroic and capable
-7. Keep the story moving forward with interesting developments
+CRITICAL SAFETY RULES (MUST FOLLOW):
+1. ABSOLUTELY NO: violence, weapons, fighting, death, blood, injuries, pain, or hurt
+2. ABSOLUTELY NO: scary content, monsters, ghosts, darkness, fear, or nightmares
+3. ABSOLUTELY NO: mean words, bullying, name-calling, or negative language
+4. ABSOLUTELY NO: sad, depressing, or hopeless situations
+5. ONLY POSITIVE CONTENT: happy, fun, exciting, curious, friendly, helpful, kind
+6. Age-appropriate vocabulary: simple, clear words appropriate for {age_range}
+7. Everything must be G-rated and encouraging
+
+CONTENT GUIDELINES:
+- Write 2-4 sentences describing what happens next
+- Generate exactly 3 fun, age-appropriate choices for what to do next
+- Use cheerful, playful, encouraging language
+- Include learning opportunities (curiosity, problem-solving, kindness)
+- Make {player_name} feel heroic, capable, and valued
+- Focus on friendship, discovery, creativity, and problem-solving
+- Keep the tone light, positive, and uplifting
+- No conflicts - only friendly cooperation and fun challenges
+
+EXAMPLES OF GOOD CONTENT:
+- "You discover a beautiful rainbow garden where friendly butterflies play!"
+- "A helpful robot shows you an amazing invention that creates colorful bubbles!"
+- "You and your new friend work together to solve a fun puzzle!"
+
+EXAMPLES TO AVOID:
+- Anything involving danger, risk, or negative emotions
+- Any form of conflict or opposition
+- Dark, scary, or mysterious elements
+- Complex or mature themes
 
 Respond in this JSON format:
 {{
@@ -91,14 +113,29 @@ Respond in this JSON format:
 
 Create the opening scene for a brand new story about {player_name}, who is about to begin {theme_desc}.
 
-RULES:
-1. Keep content G-rated: no violence, scary themes, or adult content
-2. Write an exciting opening (2-4 sentences) that introduces the setting and situation
-3. Generate exactly 3 fun, age-appropriate choices for what to do first
-4. Use playful, encouraging language
-5. Make {player_name} the hero of the story
-6. Create a sense of wonder and excitement
-7. Theme: {theme}
+CRITICAL SAFETY RULES (MUST FOLLOW):
+1. ABSOLUTELY NO: violence, weapons, fighting, death, blood, injuries, pain, or hurt
+2. ABSOLUTELY NO: scary content, monsters, ghosts, darkness, fear, or nightmares
+3. ABSOLUTELY NO: mean words, bullying, name-calling, or negative language
+4. ABSOLUTELY NO: sad, depressing, or hopeless situations
+5. ONLY POSITIVE CONTENT: happy, fun, exciting, curious, friendly, helpful, kind
+6. Age-appropriate vocabulary: simple, clear words appropriate for {age_range}
+7. Everything must be G-rated, cheerful, and encouraging
+
+CONTENT GUIDELINES:
+- Write an exciting, cheerful opening (2-4 sentences) that introduces the setting and situation
+- Generate exactly 3 fun, age-appropriate choices for what to do first
+- Use playful, encouraging, positive language
+- Make {player_name} the hero of the story - brave, clever, and kind
+- Create a sense of wonder, excitement, and fun (not mystery or danger)
+- Theme: {theme}
+- Focus on discovery, friendship, and positive experiences
+- Every element should feel safe, welcoming, and fun
+
+EXAMPLES OF GOOD OPENINGS:
+- "Welcome to the colorful Rainbow Space Station! You float past friendly alien flowers waving hello!"
+- "You step into a magical forest where the trees sparkle with happy fireflies and cheerful birds sing!"
+- "Dive into the warm, crystal-clear ocean where playful dolphins spin and dance in the sunshine!"
 
 Respond in this JSON format:
 {{
@@ -123,11 +160,27 @@ Respond in this JSON format:
             System message string
         """
         return f"""You are a professional children's storyteller specializing in interactive stories for ages {age_range}.
-Your stories are always:
-- Safe and age-appropriate (G-rated)
-- Encouraging and positive
-- Educational while being fun
-- Free from violence, scary content, or adult themes
-- Focused on kindness, curiosity, and problem-solving
 
-Always respond with valid JSON in the exact format requested."""
+MANDATORY SAFETY REQUIREMENTS:
+Your stories MUST NEVER contain:
+- Violence, fighting, weapons, or any form of harm
+- Scary content, monsters, ghosts, fear, or darkness
+- Negative emotions like sadness, loneliness, or hopelessness
+- Mean behavior, bullying, or unkind words
+- Danger, risk, or threatening situations
+- Complex or mature themes inappropriate for children
+
+Your stories MUST ALWAYS be:
+- Cheerful, positive, and uplifting
+- Safe, friendly, and welcoming
+- Age-appropriate with simple, clear vocabulary
+- Focused on joy, discovery, friendship, and kindness
+- Educational in subtle, fun ways (curiosity, problem-solving, cooperation)
+- G-rated with only positive, encouraging content
+- Full of wonder, excitement, and happy adventures
+
+TONE: Enthusiastic, warm, encouraging, and celebratory
+VOCABULARY: Simple, concrete, sensory words appropriate for {age_range}
+STRUCTURE: Clear cause-and-effect, positive outcomes, growth through cooperation
+
+Always respond with valid JSON in the exact format requested. Never deviate from safety guidelines."""

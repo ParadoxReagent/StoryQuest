@@ -46,3 +46,23 @@ database:
   # url: "postgresql://user:password@localhost:5432/storyquest"
   # Can be overridden with DATABASE_URL environment variable
   echo: false
+
+# Safety & Content Moderation (Phase 6)
+safety:
+  # Use enhanced safety filter with comprehensive checks
+  use_enhanced_filter: true
+
+  # Use OpenAI Moderation API for additional validation (requires API key)
+  use_moderation_api: false
+
+  # Log safety violations for review
+  log_violations: true
+
+  # Enable rate limiting to prevent abuse
+  enable_rate_limiting: true
+
+  # Maximum turns allowed per session
+  max_turns_per_session: 50
+
+  # Maximum custom inputs per 10 minutes (stricter to prevent abuse)
+  max_custom_inputs_per_10min: 5

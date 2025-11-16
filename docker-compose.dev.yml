@@ -1,0 +1,20 @@
+# Development override for docker-compose.yml
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  backend:
+    # Mount source code for hot-reloading
+    volumes:
+      - ./backend/app:/app/app:ro
+      - ./backend/config.yaml:/app/config.yaml:ro
+      - backend-data:/app/data
+    # Enable auto-reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      # Development environment
+      - ENV=development
+      - LOG_LEVEL=DEBUG
+
+  # For development, recommend running frontend locally with `npm run dev`
+  # for faster hot-reloading. Comment out the frontend service or just
+  # run: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up backend

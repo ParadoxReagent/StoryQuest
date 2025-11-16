@@ -1,0 +1,154 @@
+# StoryQuest Frontend
+
+Interactive web UI for the StoryQuest kids' text adventure game.
+
+## Tech Stack
+
+- **React 18** - UI library
+- **TypeScript** - Type safety
+- **Vite** - Build tool and dev server
+- **Tailwind CSS** - Styling
+- **Axios** - HTTP client
+
+## Features
+
+- 🎨 Kid-friendly, colorful interface
+- 🎮 Multiple adventure themes to choose from
+- ⌨️ Support for both suggested choices and custom input
+- 📖 Collapsible story history
+- 🔄 Loading states and error handling
+- ♿ Accessibility features (ARIA labels, keyboard navigation)
+- 📱 Responsive design (mobile-friendly)
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+ and npm
+- StoryQuest backend running on `http://localhost:8000`
+
+### Installation
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Create environment file:
+```bash
+cp .env.example .env
+```
+
+3. Edit `.env` if your backend is running on a different URL:
+```
+VITE_API_URL=http://localhost:8000
+```
+
+### Development
+
+Start the development server:
+```bash
+npm run dev
+```
+
+The app will be available at `http://localhost:3000`
+
+### Building for Production
+
+Build the app:
+```bash
+npm run build
+```
+
+Preview the production build:
+```bash
+npm run preview
+```
+
+## Project Structure
+
+```
+frontend/
+├── src/
+│   ├── components/         # React components
+│   │   ├── ThemeSelection.tsx  # Start screen with theme picker
+│   │   ├── StoryView.tsx       # Main story display
+│   │   ├── ChoiceButton.tsx    # Individual choice button
+│   │   ├── CustomInput.tsx     # Free-form input component
+│   │   └── StoryHistory.tsx    # Collapsible history viewer
+│   ├── services/          # API integration
+│   │   └── api.ts         # Backend API client
+│   ├── types/             # TypeScript definitions
+│   │   └── api.ts         # API type definitions
+│   ├── App.tsx            # Main application component
+│   ├── main.tsx           # Application entry point
+│   └── index.css          # Global styles (Tailwind)
+├── index.html             # HTML template
+├── vite.config.ts         # Vite configuration
+├── tailwind.config.js     # Tailwind CSS configuration
+├── tsconfig.json          # TypeScript configuration
+└── package.json           # Dependencies and scripts
+```
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+## Usage
+
+1. **Start a New Story:**
+   - Enter your name
+   - Select your age range (6-8 or 9-12)
+   - Choose an adventure theme:
+     - 🚀 Space Adventure
+     - 🌲 Magical Forest
+     - 🌊 Underwater Quest
+     - 🦕 Dinosaur Discovery
+     - 🏰 Castle Quest
+     - 🤖 Robot City
+   - Click "Start My Adventure!"
+
+2. **Play the Story:**
+   - Read the scene text
+   - Either:
+     - Click one of the 3 suggested choices, or
+     - Type your own creative idea (max 200 characters)
+   - The story continues based on your choice!
+
+3. **View History:**
+   - Click the "Story So Far" button to see all previous turns
+   - Review what you've chosen and where the story has gone
+
+4. **Start Over:**
+   - Click the "New Story" button in the top right to begin a fresh adventure
+
+## Accessibility
+
+The app includes several accessibility features:
+
+- Semantic HTML elements
+- ARIA labels for screen readers
+- Keyboard navigation support
+- High contrast text and backgrounds
+- Large, readable fonts (Comic Sans MS for kid-friendliness)
+- Clear focus indicators
+
+## Browser Support
+
+- Chrome/Edge (latest)
+- Firefox (latest)
+- Safari (latest)
+
+## Development Notes
+
+- The app uses Vite's proxy feature to avoid CORS issues during development
+- All API calls go through `/api` which is proxied to the backend
+- Error handling includes user-friendly messages and retry options
+- Loading states prevent duplicate requests
+
+## License
+
+TBD

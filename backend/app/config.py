@@ -64,11 +64,40 @@ class DatabaseConfig(BaseModel):
     echo: bool = Field(default=False, description="Echo SQL queries (for debugging)")
 
 
+class SafetyConfig(BaseModel):
+    """Safety and content moderation configuration."""
+    use_enhanced_filter: bool = Field(
+        default=True,
+        description="Use enhanced safety filter with comprehensive checks"
+    )
+    use_moderation_api: bool = Field(
+        default=False,
+        description="Use OpenAI Moderation API for additional validation"
+    )
+    log_violations: bool = Field(
+        default=True,
+        description="Log safety violations for review"
+    )
+    enable_rate_limiting: bool = Field(
+        default=True,
+        description="Enable rate limiting to prevent abuse"
+    )
+    max_turns_per_session: int = Field(
+        default=50,
+        description="Maximum turns allowed per session"
+    )
+    max_custom_inputs_per_10min: int = Field(
+        default=5,
+        description="Maximum custom inputs per 10 minutes"
+    )
+
+
 class AppConfig(BaseModel):
     """Complete application configuration."""
     llm: LLMConfig = Field(default_factory=LLMConfig)
     story: StoryConfig = Field(default_factory=StoryConfig)
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
+    safety: SafetyConfig = Field(default_factory=SafetyConfig)
 
 
 class Settings(BaseSettings):
@@ -102,7 +131,8 @@ def load_config(config_path: Optional[Path] = None) -> AppConfig:
     config_dict: Dict = {
         "llm": {},
         "story": {},
-        "database": {}
+        "database": {},
+        "safety": {}
     }
 
     # Load from YAML file if it exists

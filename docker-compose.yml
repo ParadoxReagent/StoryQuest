@@ -1,0 +1,81 @@
+services:
+  # Backend API Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: storyquest-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Database
+      - DATABASE_URL=sqlite:///./data/storyquest.db
+
+      # LLM Provider - Choose one: ollama, openai, anthropic
+      - LLM_PROVIDER=ollama
+
+      # Ollama configuration (if using local LLM)
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - OLLAMA_MODEL=llama3.2:3b
+
+      # OpenAI configuration (uncomment if using)
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # - OPENAI_MODEL=gpt-4o-mini
+
+      # Anthropic configuration (uncomment if using)
+      # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # - ANTHROPIC_MODEL=claude-3-5-haiku-20241022
+
+      # Safety configuration
+      - USE_ENHANCED_FILTER=true
+      - USE_MODERATION_API=false
+      - LOG_VIOLATIONS=true
+      - ENABLE_RATE_LIMITING=true
+
+      # Python configuration
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Persist database
+      - backend-data:/app/data
+      # Mount config (optional - for easy editing)
+      - ./backend/config.yaml:/app/config.yaml:ro
+    networks:
+      - storyquest-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Web UI Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # API URL - points to backend service
+        - VITE_API_URL=http://localhost:8000
+    container_name: storyquest-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - storyquest-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  backend-data:
+    name: storyquest-data
+
+networks:
+  storyquest-network:
+    name: storyquest-network
+    driver: bridge
