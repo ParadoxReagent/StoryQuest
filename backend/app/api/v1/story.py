@@ -182,6 +182,7 @@ async def continue_story(
         response = await engine.continue_story(
             session_id=request.session_id,
             choice_id=request.choice_id,
+            choice_text=request.choice_text,
             custom_input=request.custom_input,
             story_summary=request.story_summary,
             db_session=db

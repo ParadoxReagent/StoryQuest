@@ -37,6 +37,7 @@ export interface StartStoryRequest {
 export interface ContinueStoryRequest {
   session_id: string;
   choice_id?: string;
+  choice_text?: string;
   custom_input?: string;
   story_summary: string;
 }

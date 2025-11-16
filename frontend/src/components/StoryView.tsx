@@ -8,9 +8,14 @@ import type { StoryResponse } from '../types/api';
 import ChoiceButton from './ChoiceButton';
 import CustomInput from './CustomInput';
 
+interface Choice {
+  choice_id: string;
+  text: string;
+}
+
 interface StoryViewProps {
   story: StoryResponse;
-  onChoiceClick: (choiceId: string) => void;
+  onChoiceClick: (choice: Choice) => void;
   onCustomInput: (input: string) => void;
   disabled?: boolean;
 }
@@ -94,7 +99,7 @@ export const StoryView: React.FC<StoryViewProps> = ({
               <ChoiceButton
                 key={choice.choice_id}
                 choice={choice}
-                onClick={() => onChoiceClick(choice.choice_id)}
+                onClick={() => onChoiceClick(choice)}
                 disabled={disabled}
               />
             ))}

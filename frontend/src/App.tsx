@@ -71,7 +71,7 @@ function App() {
   /**
    * Continue the story with a choice
    */
-  const handleChoice = async (choiceId: string) => {
+  const handleChoice = async (choice: { choice_id: string; text: string }) => {
     if (!story) return;
 
     setIsLoading(true);
@@ -80,14 +80,15 @@ function App() {
     try {
       const response = await continueStory({
         session_id: story.session_id,
-        choice_id: choiceId,
+        choice_id: choice.choice_id,
+        choice_text: choice.text,
         story_summary: story.story_summary,
       });
 
       // Add previous turn to history
       const previousTurn: Turn = {
         scene_text: story.current_scene.text,
-        player_choice: choiceId,
+        player_choice: choice.text,
         turn_number: story.metadata?.turns || 0,
       };
 

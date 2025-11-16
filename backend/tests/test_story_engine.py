@@ -108,6 +108,7 @@ async def test_continue_story_updates_turns_and_summary(db_session):
     continue_response = await engine.continue_story(
         session_id=start_response.session_id,
         choice_id=None,
+        choice_text=None,
         custom_input="I open the door",
         story_summary=start_response.story_summary,
         db_session=db_session,
@@ -133,6 +134,7 @@ async def test_engine_allows_llm_provider_switch(db_session):
     response = await engine.continue_story(
         session_id=start_response.session_id,
         choice_id="c1",
+        choice_text="Go left",
         custom_input=None,
         story_summary=start_response.story_summary,
         db_session=db_session,
@@ -171,6 +173,7 @@ async def test_session_history_and_reset(db_session):
     await engine.continue_story(
         session_id=start_response.session_id,
         choice_id="c1",
+        choice_text="Go left",
         custom_input=None,
         story_summary=start_response.story_summary,
         db_session=db_session,

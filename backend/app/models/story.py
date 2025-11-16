@@ -50,6 +50,7 @@ class ContinueStoryRequest(BaseModel):
     """Request to continue an existing story."""
     session_id: UUID = Field(..., description="The session ID to continue")
     choice_id: Optional[str] = Field(None, description="ID of the selected choice (if using suggested choice)")
+    choice_text: Optional[str] = Field(None, description="Text of the selected choice (if using suggested choice)")
     custom_input: Optional[str] = Field(None, max_length=200, description="Custom player input (if not using suggested choice)")
     story_summary: str = Field(..., description="Current story summary (sent by client for stateless backend)")
 
