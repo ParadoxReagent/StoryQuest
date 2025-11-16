@@ -64,6 +64,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [streamingText, setStreamingText] = useState<string>('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isHistoryCollapsed, setIsHistoryCollapsed] = useState(true);
 
   /**
    * Start a new story
@@ -127,7 +128,7 @@ function App() {
         setStory(response);
         setHistory([
           {
-            scene_text: accumulatedText,
+            scene_text: finalSceneText || accumulatedText,
             turn_number: 0,
           },
         ]);
@@ -389,12 +390,20 @@ function App() {
 
       {/* Playing Screen - New Optimized Layout */}
       {appState === 'playing' && story && (
-        <div className="flex flex-col h-screen lg:grid lg:grid-cols-[2fr,1fr] lg:gap-0">
+        <div className={`flex flex-col h-screen lg:grid lg:gap-0 ${isHistoryCollapsed ? 'lg:grid-cols-1' : 'lg:grid-cols-[2fr,1fr]'}`}>
           {/* Left Column: Story Content (scrollable) */}
           <div className="flex-1 overflow-y-auto">
             <div className="container mx-auto px-4 md:px-6 py-4 md:py-6 space-y-4">
               {/* Header with New Story Button */}
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2">
+                {/* Toggle Sidebar Button - Desktop only */}
+                <button
+                  onClick={() => setIsHistoryCollapsed(!isHistoryCollapsed)}
+                  className="hidden lg:block px-4 py-2 md:px-6 md:py-3 rounded-xl border-4 border-white bg-white/20 hover:bg-white/30 text-white font-kid font-bold backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg text-sm md:text-base"
+                  aria-label={isHistoryCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+                >
+                  {isHistoryCollapsed ? '📖 Show History' : '📖 Hide History'}
+                </button>
                 <button
                   onClick={handleNewStory}
                   disabled={isLoading}
@@ -425,46 +434,48 @@ function App() {
           </div>
 
           {/* Right Column: Choices and History (Desktop only) */}
-          <div className="hidden lg:flex lg:flex-col lg:border-l-4 lg:border-primary-200 lg:bg-gradient-to-b lg:from-primary-50 lg:to-white">
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {/* Story History - Desktop */}
-              {history.length > 1 && (
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-4 border-primary-200 shadow-lg">
-                  <h3 className="font-kid text-xl font-bold text-primary-700 mb-3 flex items-center gap-2">
-                    <span className="text-2xl">📖</span>
-                    Story So Far
-                  </h3>
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {history.map((turn) => (
-                      <div
-                        key={turn.turn_number}
-                        className="border-l-4 border-primary-400 pl-3 py-2 bg-white/50 rounded-r-lg"
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-kid text-xs font-bold text-primary-600">
-                            Turn {turn.turn_number}
-                          </span>
-                          {turn.turn_number === 0 && (
-                            <span className="text-xs font-kid bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-                              Start
+          {!isHistoryCollapsed && (
+            <div className="hidden lg:flex lg:flex-col lg:border-l-4 lg:border-primary-200 lg:bg-gradient-to-b lg:from-primary-50 lg:to-white">
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {/* Story History - Desktop */}
+                {history.length > 1 && (
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-4 border-primary-200 shadow-lg">
+                    <h3 className="font-kid text-xl font-bold text-primary-700 mb-3 flex items-center gap-2">
+                      <span className="text-2xl">📖</span>
+                      Story So Far
+                    </h3>
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {history.map((turn) => (
+                        <div
+                          key={turn.turn_number}
+                          className="border-l-4 border-primary-400 pl-3 py-2 bg-white/50 rounded-r-lg"
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-kid text-xs font-bold text-primary-600">
+                              Turn {turn.turn_number}
                             </span>
+                            {turn.turn_number === 0 && (
+                              <span className="text-xs font-kid bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                                Start
+                              </span>
+                            )}
+                          </div>
+                          <p className="font-kid text-sm text-gray-700 line-clamp-3">
+                            {turn.scene_text}
+                          </p>
+                          {(turn.player_choice || turn.custom_input) && (
+                            <p className="font-kid text-xs text-primary-600 italic mt-1">
+                              → {turn.custom_input || turn.player_choice}
+                            </p>
                           )}
                         </div>
-                        <p className="font-kid text-sm text-gray-700 line-clamp-3">
-                          {turn.scene_text}
-                        </p>
-                        {(turn.player_choice || turn.custom_input) && (
-                          <p className="font-kid text-xs text-primary-600 italic mt-1">
-                            → {turn.custom_input || turn.player_choice}
-                          </p>
-                        )}
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>
