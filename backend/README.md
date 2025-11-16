@@ -45,12 +45,75 @@ LLM-powered kids' text adventure game backend API.
 
 ## Quick Start
 
-### Prerequisites
+> **💡 Recommended**: Use Docker for the easiest setup. See the main [README.md](../README.md) and [DOCKER.md](../DOCKER.md) for Docker instructions.
 
+### 🐳 With Docker (Recommended)
+
+**Run the entire application:**
+```bash
+# From project root
+docker-compose up -d
+```
+
+**Access the API:**
+- API: http://localhost:8000
+- Swagger docs: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+- Health check: http://localhost:8000/health
+
+**View backend logs:**
+```bash
+docker-compose logs -f backend
+```
+
+**Run backend commands:**
+```bash
+# Access backend shell
+docker-compose exec backend /bin/bash
+
+# Run tests
+docker-compose exec backend pytest
+
+# Initialize database (already done on startup)
+docker-compose exec backend python scripts/init_db.py
+```
+
+**Configure LLM provider:**
+
+Edit `.env` in the project root:
+```bash
+# For Ollama (default)
+LLM_PROVIDER=ollama
+
+# For OpenAI
+LLM_PROVIDER=openai
+OPENAI_API_KEY=sk-your-key-here
+
+# For Anthropic
+LLM_PROVIDER=anthropic
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+```
+
+Then restart:
+```bash
+docker-compose down
+docker-compose up -d
+```
+
+---
+
+### 📦 Manual Installation (Advanced)
+
+> **⚠️ Note**: Manual installation is only recommended for development. For production, use Docker.
+
+<details>
+<summary>Click to expand manual installation instructions</summary>
+
+**Prerequisites:**
 - Python 3.11+
 - (Optional) Ollama installed for local LLM
 
-### Installation
+**Installation Steps:**
 
 1. Create a virtual environment:
 ```bash
@@ -79,7 +142,7 @@ ollama pull llama3.2:3b
 python scripts/init_db.py
 ```
 
-### Running the API
+**Running the API:**
 
 ```bash
 python -m uvicorn app.main:app --reload
@@ -91,15 +154,12 @@ cd app
 python main.py
 ```
 
-Or with uvicorn directly:
-```bash
-uvicorn app.main:app --reload
-```
-
 The API will be available at:
 - API: http://localhost:8000
 - Swagger docs: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
+
+</details>
 
 ## Configuration
 
@@ -212,21 +272,55 @@ backend/
 
 ## Development
 
-### Running Tests
+### With Docker (Recommended)
 
+**Run tests:**
+```bash
+docker-compose exec backend pytest
+```
+
+**Code formatting:**
+```bash
+docker-compose exec backend black app/
+docker-compose exec backend isort app/
+```
+
+**Type checking:**
+```bash
+docker-compose exec backend mypy app/
+```
+
+**Access Python shell:**
+```bash
+docker-compose exec backend python
+```
+
+**Hot-reload development mode:**
+```bash
+# From project root
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+```
+
+See [DOCKER.md](../DOCKER.md) for complete Docker development workflows.
+
+---
+
+### Manual Development
+
+If running without Docker:
+
+**Run tests:**
 ```bash
 pytest
 ```
 
-### Code Formatting
-
+**Code formatting:**
 ```bash
 black app/
 isort app/
 ```
 
-### Type Checking
-
+**Type checking:**
 ```bash
 mypy app/
 ```
@@ -241,16 +335,17 @@ Phase 3 implements the core story engine with the following features:
 - **Error Handling**: Retry logic with exponential backoff and fallback responses
 - **Session Management**: Track story history, resume sessions, and enforce turn limits
 
-## Next Steps
+## Roadmap
 
 - ✅ Phase 1: Story Format & API Contract
 - ✅ Phase 2: LLM Abstraction Layer
 - ✅ Phase 3: Core Story Engine Backend
-- [ ] Phase 4: Minimal Web UI (MVP)
-- [ ] Phase 5: iPad App (SwiftUI) client
-- [ ] Phase 6: Safety, guardrails, and kid-friendly constraints (enhanced)
+- ✅ Phase 4: Web UI (MVP)
+- ✅ Phase 6: Enhanced Safety & Guardrails
+- ✅ Docker Deployment
+- [ ] Phase 5: iPad App (SwiftUI) - See [IOS_APP_PLAN.md](../IOS_APP_PLAN.md)
 - [ ] Phase 7: Enhancements (TTS, images, achievements)
-- [ ] Phase 8: Polish, testing, and hardening
+- [ ] Phase 8: Polish, testing, and production hardening
 
 ## License
 

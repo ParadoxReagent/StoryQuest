@@ -22,19 +22,56 @@ Interactive web UI for the StoryQuest kids' text adventure game.
 
 ## Getting Started
 
-### Prerequisites
+> **💡 Recommended**: Use Docker for the easiest setup. See the main [README.md](../README.md) and [DOCKER.md](../DOCKER.md) for Docker instructions.
 
+### 🐳 With Docker (Recommended)
+
+**Run the entire application (frontend + backend):**
+```bash
+# From project root
+docker-compose up -d
+```
+
+**Access the frontend:**
+- Frontend: http://localhost:3000
+- The backend API is automatically available to the frontend
+
+**View frontend logs:**
+```bash
+docker-compose logs -f frontend
+```
+
+**Rebuild after code changes:**
+```bash
+docker-compose build frontend
+docker-compose up -d frontend
+```
+
+**Production build:**
+
+The Docker setup automatically builds the frontend for production using multi-stage builds with Nginx.
+
+---
+
+### 📦 Manual Installation (Advanced)
+
+> **⚠️ Note**: Manual installation is only recommended for frontend development. For production, use Docker.
+
+<details>
+<summary>Click to expand manual installation instructions</summary>
+
+**Prerequisites:**
 - Node.js 18+ and npm
 - StoryQuest backend running on `http://localhost:8000`
 
-### Installation
+**Installation:**
 
 1. Install dependencies:
 ```bash
 npm install
 ```
 
-2. Create environment file:
+2. Create environment file (optional):
 ```bash
 cp .env.example .env
 ```
@@ -44,7 +81,7 @@ cp .env.example .env
 VITE_API_URL=http://localhost:8000
 ```
 
-### Development
+**Development:**
 
 Start the development server:
 ```bash
@@ -53,7 +90,7 @@ npm run dev
 
 The app will be available at `http://localhost:3000`
 
-### Building for Production
+**Building for Production:**
 
 Build the app:
 ```bash
@@ -64,6 +101,8 @@ Preview the production build:
 ```bash
 npm run preview
 ```
+
+</details>
 
 ## Project Structure
 
@@ -91,6 +130,14 @@ frontend/
 ```
 
 ## Available Scripts
+
+### With Docker
+
+- `docker-compose logs -f frontend` - View frontend logs
+- `docker-compose build frontend` - Rebuild frontend image
+- `docker-compose exec frontend /bin/sh` - Access frontend container shell
+
+### Manual Development
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
@@ -143,6 +190,17 @@ The app includes several accessibility features:
 - Safari (latest)
 
 ## Development Notes
+
+### With Docker
+
+- Frontend runs on Nginx in production mode
+- Backend API is accessed at `http://backend:8000` from within the Docker network
+- Frontend is served at `http://localhost:3000` on the host
+- CORS is configured on the backend to allow frontend requests
+- Multi-stage build optimizes the production image size
+- Static assets are cached with appropriate headers
+
+### Manual Development
 
 - The app uses Vite's proxy feature to avoid CORS issues during development
 - All API calls go through `/api` which is proxied to the backend

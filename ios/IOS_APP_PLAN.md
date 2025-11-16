@@ -117,22 +117,22 @@ The StoryQuest iOS/iPadOS app is a native Swift application that provides a kid-
 
 ```
 ┌─────────────────────────────────────────────┐
-│                   Views                      │
+│                   Views                     │
 │  (SwiftUI - ThemeSelectionView, StoryView)  │
 └────────────────┬────────────────────────────┘
                  │ Observes
 ┌────────────────▼────────────────────────────┐
-│              ViewModels                      │
+│              ViewModels                     │
 │  (ObservableObject - StoryViewModel, etc.)  │
 └────────────────┬────────────────────────────┘
                  │ Uses
 ┌────────────────▼────────────────────────────┐
-│               Models                         │
+│               Models                        │
 │  (Story, Scene, Choice, Session)            │
 └────────────────┬────────────────────────────┘
                  │ Used by
 ┌────────────────▼────────────────────────────┐
-│              Services                        │
+│              Services                       │
 │  (APIService, TTSService, StorageService)   │
 └─────────────────────────────────────────────┘
 ```

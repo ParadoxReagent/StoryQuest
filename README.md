@@ -66,6 +66,7 @@ StoryQuest/
 ├── docker-compose.dev.yml   # Docker development overrides
 ├── .env.example             # Environment variables template
 ├── .gitignore               # Git ignore patterns
+├── GETTING_STARTED.md       # ⭐ Quick start guide (read this first!)
 ├── DOCKER.md                # Complete Docker guide
 ├── DOCKER_QUICK_REFERENCE.md # Docker commands cheat sheet
 ├── IOS_APP_PLAN.md          # Complete iOS app implementation plan
@@ -74,13 +75,19 @@ StoryQuest/
 
 ## Quick Start
 
-### 🐳 Docker (Recommended)
+> **💡 Recommended**: Use Docker for the easiest setup and deployment. All instructions below assume Docker usage.
 
-The easiest way to run StoryQuest is with Docker:
+### 🐳 Docker Setup (Primary Method)
+
+StoryQuest is designed to run with Docker. This provides:
+- ✅ Consistent environment across all platforms
+- ✅ Automatic dependency management
+- ✅ Easy deployment and scaling
+- ✅ No manual Python/Node.js setup required
 
 **Prerequisites:**
-- Docker and Docker Compose installed
-- (Optional) Ollama for local LLM
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed
+- (Optional) [Ollama](https://ollama.ai) for local LLM
 
 **Steps:**
 
@@ -140,16 +147,21 @@ docker-compose down
 docker-compose up -d
 ```
 
-### 📦 Manual Installation
+---
 
-If you prefer to run without Docker:
+### 📦 Manual Installation (Advanced)
+
+> **⚠️ Note**: Manual installation is only recommended for development or if you cannot use Docker. For production and easiest setup, use Docker (see above).
+
+<details>
+<summary>Click to expand manual installation instructions</summary>
 
 **Prerequisites:**
 - Python 3.11+
 - Node.js 18+
 - (Optional) Ollama for local LLM
 
-### 1. Backend Setup
+#### 1. Backend Setup
 
 See [backend/README.md](backend/README.md) for detailed instructions.
 
@@ -186,13 +198,13 @@ npm run dev
 
 The web app will be available at http://localhost:3000
 
-### Using Local LLM (Ollama)
+#### Using Local LLM (Ollama)
 
 1. Install Ollama: https://ollama.ai
 2. Pull a model: `ollama pull llama3.2:3b`
-3. Start the backend with `LLM_PROVIDER=ollama`
+3. Ollama will be accessible from the backend automatically
 
-### Using Cloud LLMs
+#### Using Cloud LLMs
 
 Set your API key in `.env`:
 ```bash
@@ -205,6 +217,10 @@ Or for Anthropic:
 LLM_PROVIDER=anthropic
 ANTHROPIC_API_KEY=sk-ant-...
 ```
+
+</details>
+
+---
 
 ## Implementation Progress
 
@@ -322,26 +338,62 @@ StoryQuest prioritizes child safety:
 
 ## Documentation
 
+### Getting Started
+
+- **[GETTING_STARTED.md](GETTING_STARTED.md)** - ⭐ Start here! Quick setup guide
+
+### Docker & Deployment
+
 - [Docker Guide](DOCKER.md) - Complete Docker setup and deployment guide
-- [iOS App Plan](IOS_APP_PLAN.md) - Complete iOS/iPadOS implementation plan
-- [Detailed Plan](StoryQuest_Plan.md) - Complete implementation roadmap
+- [Docker Quick Reference](DOCKER_QUICK_REFERENCE.md) - Command cheat sheet
+
+### Development Guides
+
 - [Backend README](backend/README.md) - Backend setup and API documentation
 - [Frontend README](frontend/README.md) - Frontend setup and development guide
 - [iOS README](ios/README.md) - iOS app development guide
 - [Safety Guide](backend/SAFETY.md) - Safety features and content moderation
-- [API Documentation](http://localhost:8000/docs) - Interactive API docs (when running)
+
+### Planning & Architecture
+
+- [iOS App Plan](IOS_APP_PLAN.md) - Complete iOS/iPadOS implementation plan
+- [Detailed Plan](StoryQuest_Plan.md) - Complete implementation roadmap
+
+### API Documentation (when running)
+
+- [Interactive API Docs](http://localhost:8000/docs) - Swagger UI
+- [Alternative Docs](http://localhost:8000/redoc) - ReDoc UI
 - [Health Check](http://localhost:8000/health) - Backend health status
+- [Admin Panel](http://localhost:8000/api/v1/admin/health/detailed) - Detailed system status
 
 ## Development
 
-### Running Tests
+### Docker Development Workflow
 
+**Start services in development mode:**
 ```bash
-cd backend
-pytest
+# Backend with hot-reload
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+# View logs
+docker-compose logs -f backend
 ```
 
-### Code Quality
+**Run commands inside containers:**
+```bash
+# Backend tests
+docker-compose exec backend pytest
+
+# Backend shell
+docker-compose exec backend /bin/bash
+
+# Frontend shell
+docker-compose exec frontend /bin/sh
+```
+
+### Code Quality (Manual Setup Only)
+
+If running without Docker:
 
 ```bash
 # Format code
@@ -354,6 +406,8 @@ mypy backend/app
 # Linting
 flake8 backend/app
 ```
+
+For Docker-based development, see [DOCKER.md](DOCKER.md) for complete development workflows.
 
 ## Contributing
 
@@ -377,20 +431,43 @@ TBD
 
 ## How to Use
 
-1. **Start the Backend**: Run the FastAPI backend with your preferred LLM provider
-2. **Start the Frontend**: Launch the React development server
-3. **Open the App**: Navigate to http://localhost:3000 in your browser
-4. **Create a Story**:
+### With Docker (Recommended)
+
+1. **Start the application**:
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Open the App**: Navigate to http://localhost:3000 in your browser
+
+3. **Create a Story**:
    - Enter your name
    - Choose your age range (6-8 or 9-12)
    - Select an adventure theme
    - Click "Start My Adventure!"
-5. **Play the Story**:
+
+4. **Play the Story**:
    - Read the scene text
    - Either click a suggested choice or type your own idea
    - Watch the story unfold based on your decisions!
-6. **View History**: Click "Story So Far" to see all previous turns
-7. **Start Over**: Click "New Story" to begin a fresh adventure
+
+5. **View History**: Click "Story So Far" to see all previous turns
+
+6. **Start Over**: Click "New Story" to begin a fresh adventure
+
+7. **Stop the application**:
+   ```bash
+   docker-compose down
+   ```
+
+### Without Docker (Manual Setup)
+
+If you're running manually (not recommended for production):
+
+1. Start the backend: `cd backend && uvicorn app.main:app --reload`
+2. Start the frontend: `cd frontend && npm run dev`
+3. Open http://localhost:3000
+4. Follow steps 3-6 above
 
 ## Contact
 
