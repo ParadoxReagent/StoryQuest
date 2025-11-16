@@ -4,7 +4,7 @@
 # Web Framework
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-python-multipart==0.0.6
+python-multipart==0.0.18
 
 # Data Validation
 pydantic>=2.10.0
@@ -31,7 +31,7 @@ pytest-cov==4.1.0
 # pytest-httpx - skipped due to version conflict with httpx==0.25.2
 
 # Development
-black==23.11.0
+black==24.3.0
 flake8==6.1.0
 mypy==1.7.1
 isort==5.12.0
