@@ -19,6 +19,21 @@ interface Turn {
   turn_number: number;
 }
 
+const getErrorMessage = (error: unknown): string => {
+  if (typeof error === 'object' && error !== null) {
+    const maybeResponse = (error as { response?: { data?: { detail?: string } } }).response;
+    if (maybeResponse?.data?.detail) {
+      return maybeResponse.data.detail;
+    }
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return 'Something went wrong. Please try again.';
+};
+
 function App() {
   const [appState, setAppState] = useState<AppState>('theme-selection');
   const [story, setStory] = useState<StoryResponse | null>(null);
@@ -44,9 +59,9 @@ function App() {
         },
       ]);
       setAppState('playing');
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to start story:', err);
-      setError(err.response?.data?.detail || 'Failed to start story. Please try again.');
+      setError(getErrorMessage(err) || 'Failed to start story. Please try again.');
       setAppState('error');
     } finally {
       setIsLoading(false);
@@ -78,9 +93,9 @@ function App() {
 
       setHistory((prev) => [...prev, previousTurn]);
       setStory(response);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to continue story:', err);
-      setError(err.response?.data?.detail || 'Failed to continue story. Please try again.');
+      setError(getErrorMessage(err) || 'Failed to continue story. Please try again.');
       setAppState('error');
     } finally {
       setIsLoading(false);
@@ -112,9 +127,9 @@ function App() {
 
       setHistory((prev) => [...prev, previousTurn]);
       setStory(response);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to continue story:', err);
-      setError(err.response?.data?.detail || 'Failed to continue story. Please try again.');
+      setError(getErrorMessage(err) || 'Failed to continue story. Please try again.');
       setAppState('error');
     } finally {
       setIsLoading(false);
