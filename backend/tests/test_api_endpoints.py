@@ -40,6 +40,7 @@ class StubStoryEngine:
         self,
         session_id,
         choice_id,
+        choice_text,
         custom_input,
         story_summary,
         db_session,
@@ -47,6 +48,7 @@ class StubStoryEngine:
         self.continue_calls.append({
             "session_id": session_id,
             "choice_id": choice_id,
+            "choice_text": choice_text,
             "custom_input": custom_input,
             "story_summary": story_summary,
         })
