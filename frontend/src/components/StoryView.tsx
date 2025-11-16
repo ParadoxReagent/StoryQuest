@@ -1,12 +1,15 @@
 /**
  * StoryView Component
  * Displays the current scene and player choices
+ * Enhanced with scene transition animations (Optimization 2.1)
  */
 
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { StoryResponse } from '../types/api';
 import ChoiceButton from './ChoiceButton';
 import CustomInput from './CustomInput';
+import LoadingStoryBook from './LoadingStoryBook';
 import { useThrottledText } from '../hooks/useThrottledText';
 
 interface Choice {
@@ -96,28 +99,34 @@ export const StoryView: React.FC<StoryViewProps> = ({
             </div>
           )}
 
-          {/* Current Scene - Compact Display */}
+          {/* Current Scene - Compact Display with Scene Transitions */}
           <div className="bg-white p-4 md:p-6 lg:p-8 rounded-2xl border-4 border-primary-300 shadow-xl">
             <div className="prose prose-lg max-w-none story-text-container">
               {/* Max height for story text with scrolling - Optimization 1.2 */}
               <div className="min-h-[4rem] max-h-[60vh] overflow-y-auto">
                 {/* Responsive font sizes - Optimization 1.2 */}
-                <p className="font-kid text-lg sm:text-xl md:text-2xl leading-normal text-gray-800 whitespace-pre-wrap story-text-smooth">
-                  {displayText}
-                </p>
+                {/* Scene Transition Animations - Optimization 2.1 */}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={story.metadata?.turns || 0}
+                    initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, y: -20, filter: "blur(10px)" }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                  >
+                    <p className="font-kid text-lg sm:text-xl md:text-2xl leading-normal text-gray-800 whitespace-pre-wrap story-text-smooth">
+                      {displayText}
+                    </p>
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </div>
           </div>
 
-          {/* Loading Indicator - Only show during initial load, not during streaming */}
+          {/* Loading Indicator - Animated Story Book (Optimization 2.1) */}
           {disabled && !story.current_scene.text && !isFinished && (
-            <div className="bg-yellow-50 border-4 border-yellow-300 rounded-2xl p-4 md:p-6 shadow-lg story-scene-enter">
-              <div className="flex items-center justify-center gap-3">
-                <div className="animate-spin rounded-full h-6 w-6 md:h-8 md:w-8 border-4 border-yellow-500 border-t-transparent"></div>
-                <p className="font-kid text-lg md:text-xl font-bold text-yellow-700">
-                  Creating your story... ✨
-                </p>
-              </div>
+            <div className="bg-gradient-to-br from-yellow-50 to-primary-50 border-4 border-primary-300 rounded-2xl p-4 md:p-6 shadow-xl">
+              <LoadingStoryBook message="Creating your story... ✨" />
             </div>
           )}
 
