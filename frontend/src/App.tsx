@@ -326,95 +326,147 @@ function App() {
 
   return (
     <div className="min-h-screen">
-      <div className="container mx-auto px-4 py-8">
-        {/* Theme Selection Screen */}
-        {appState === 'theme-selection' && (
-          <ThemeSelection onStart={handleStartStory} disabled={isLoading} />
-        )}
+      {/* Theme Selection and Loading/Error Screens - Traditional Layout */}
+      {(appState === 'theme-selection' || appState === 'loading' || appState === 'error') && (
+        <div className="container mx-auto px-4 py-8">
+          {/* Theme Selection Screen */}
+          {appState === 'theme-selection' && (
+            <ThemeSelection onStart={handleStartStory} disabled={isLoading} />
+          )}
 
-        {/* Loading Screen */}
-        {appState === 'loading' && (
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-white p-12 rounded-2xl border-4 border-primary-400 shadow-2xl text-center">
-              <div className="animate-bounce text-8xl mb-6">✨</div>
-              <h2 className="font-kid text-3xl font-bold text-primary-600 mb-4">
-                Creating your amazing story...
-              </h2>
-              <div className="flex justify-center">
-                <div className="animate-spin rounded-full h-16 w-16 border-8 border-primary-500 border-t-transparent"></div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Playing Screen */}
-        {appState === 'playing' && story && (
-          <div className="space-y-6">
-            {/* Header with New Story Button */}
-            <div className="max-w-4xl mx-auto flex justify-end">
-              <button
-                onClick={handleNewStory}
-                disabled={isLoading}
-                className="px-6 py-3 rounded-xl border-4 border-white bg-white/20 hover:bg-white/30 text-white font-kid font-bold backdrop-blur-sm transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                aria-label="Start new story"
-              >
-                🔄 New Story
-              </button>
-            </div>
-
-            {/* Story History */}
-            {history.length > 1 && (
-              <StoryHistory turns={history} />
-            )}
-
-            {/* Current Story View */}
-            <StoryView
-              story={story}
-              onChoiceClick={handleChoice}
-              onCustomInput={handleCustomInput}
-              disabled={isLoading}
-              streamingText={streamingText}
-              isStreaming={isStreaming}
-            />
-          </div>
-        )}
-
-        {/* Error Screen */}
-        {appState === 'error' && (
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-white p-12 rounded-2xl border-4 border-red-400 shadow-2xl">
-              <div className="text-center mb-6">
-                <div className="text-8xl mb-4">😕</div>
-                <h2 className="font-kid text-3xl font-bold text-red-600 mb-4">
-                  Oops! Something went wrong
+          {/* Loading Screen */}
+          {appState === 'loading' && (
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-white p-12 rounded-2xl border-4 border-primary-400 shadow-2xl text-center">
+                <div className="animate-bounce text-8xl mb-6">✨</div>
+                <h2 className="font-kid text-3xl font-bold text-primary-600 mb-4">
+                  Creating your amazing story...
                 </h2>
-                {error && (
-                  <p className="font-kid text-lg text-gray-700 mb-6">
-                    {error}
-                  </p>
-                )}
+                <div className="flex justify-center">
+                  <div className="animate-spin rounded-full h-16 w-16 border-8 border-primary-500 border-t-transparent"></div>
+                </div>
               </div>
+            </div>
+          )}
 
-              <div className="flex gap-4 justify-center">
-                <button
-                  onClick={handleRetry}
-                  className="px-8 py-4 rounded-xl border-4 border-primary-400 bg-primary-500 text-white font-kid text-xl font-bold hover:bg-primary-600 transition-all duration-200 hover:scale-105 shadow-lg"
-                  aria-label="Try again"
-                >
-                  🔄 Try Again
-                </button>
+          {/* Error Screen */}
+          {appState === 'error' && (
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-white p-12 rounded-2xl border-4 border-red-400 shadow-2xl">
+                <div className="text-center mb-6">
+                  <div className="text-8xl mb-4">😕</div>
+                  <h2 className="font-kid text-3xl font-bold text-red-600 mb-4">
+                    Oops! Something went wrong
+                  </h2>
+                  {error && (
+                    <p className="font-kid text-lg text-gray-700 mb-6">
+                      {error}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex gap-4 justify-center">
+                  <button
+                    onClick={handleRetry}
+                    className="px-8 py-4 rounded-xl border-4 border-primary-400 bg-primary-500 text-white font-kid text-xl font-bold hover:bg-primary-600 transition-all duration-200 hover:scale-105 shadow-lg"
+                    aria-label="Try again"
+                  >
+                    🔄 Try Again
+                  </button>
+                  <button
+                    onClick={handleNewStory}
+                    className="px-8 py-4 rounded-xl border-4 border-gray-300 bg-white text-gray-700 font-kid text-xl font-bold hover:bg-gray-100 transition-all duration-200 hover:scale-105 shadow-lg"
+                    aria-label="Start over"
+                  >
+                    🏠 Start Over
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Playing Screen - New Optimized Layout */}
+      {appState === 'playing' && story && (
+        <div className="flex flex-col h-screen lg:grid lg:grid-cols-[2fr,1fr] lg:gap-0">
+          {/* Left Column: Story Content (scrollable) */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="container mx-auto px-4 md:px-6 py-4 md:py-6 space-y-4">
+              {/* Header with New Story Button */}
+              <div className="flex justify-end">
                 <button
                   onClick={handleNewStory}
-                  className="px-8 py-4 rounded-xl border-4 border-gray-300 bg-white text-gray-700 font-kid text-xl font-bold hover:bg-gray-100 transition-all duration-200 hover:scale-105 shadow-lg"
-                  aria-label="Start over"
+                  disabled={isLoading}
+                  className="px-4 py-2 md:px-6 md:py-3 rounded-xl border-4 border-white bg-white/20 hover:bg-white/30 text-white font-kid font-bold backdrop-blur-sm transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-sm md:text-base"
+                  aria-label="Start new story"
                 >
-                  🏠 Start Over
+                  🔄 New Story
                 </button>
               </div>
+
+              {/* Story History - Mobile/Tablet */}
+              {history.length > 1 && (
+                <div className="lg:hidden">
+                  <StoryHistory turns={history} />
+                </div>
+              )}
+
+              {/* Current Story View */}
+              <StoryView
+                story={story}
+                onChoiceClick={handleChoice}
+                onCustomInput={handleCustomInput}
+                disabled={isLoading}
+                streamingText={streamingText}
+                isStreaming={isStreaming}
+              />
             </div>
           </div>
-        )}
-      </div>
+
+          {/* Right Column: Choices and History (Desktop only) */}
+          <div className="hidden lg:flex lg:flex-col lg:border-l-4 lg:border-primary-200 lg:bg-gradient-to-b lg:from-primary-50 lg:to-white">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Story History - Desktop */}
+              {history.length > 1 && (
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-4 border-primary-200 shadow-lg">
+                  <h3 className="font-kid text-xl font-bold text-primary-700 mb-3 flex items-center gap-2">
+                    <span className="text-2xl">📖</span>
+                    Story So Far
+                  </h3>
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {history.map((turn) => (
+                      <div
+                        key={turn.turn_number}
+                        className="border-l-4 border-primary-400 pl-3 py-2 bg-white/50 rounded-r-lg"
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-kid text-xs font-bold text-primary-600">
+                            Turn {turn.turn_number}
+                          </span>
+                          {turn.turn_number === 0 && (
+                            <span className="text-xs font-kid bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                              Start
+                            </span>
+                          )}
+                        </div>
+                        <p className="font-kid text-sm text-gray-700 line-clamp-3">
+                          {turn.scene_text}
+                        </p>
+                        {(turn.player_choice || turn.custom_input) && (
+                          <p className="font-kid text-xs text-primary-600 italic mt-1">
+                            → {turn.custom_input || turn.player_choice}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
