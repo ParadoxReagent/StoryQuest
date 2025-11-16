@@ -11,12 +11,12 @@ services:
       # Database
       - DATABASE_URL=sqlite:///./data/storyquest.db
 
-      # LLM Provider - Choose one: ollama, openai, anthropic, gemini, openrouter
-      - LLM_PROVIDER=ollama
+      # LLM Provider - Choose one: ollama, openai, anthropic, gemini, openrouter, lmstudio
+      - LLM_PROVIDER=lmstudio
 
       # Ollama configuration (if using local LLM)
-      - OLLAMA_BASE_URL=http://host.docker.internal:11434
-      - OLLAMA_MODEL=llama3.2:3b
+      # - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      # - OLLAMA_MODEL=llama3.2:3b
 
       # OpenAI configuration (uncomment if using)
       # - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -35,6 +35,10 @@ services:
       # - OPENROUTER_MODEL=anthropic/claude-3.5-haiku
       # - OPENROUTER_SITE_URL=https://storyquest.local
       # - OPENROUTER_APP_NAME=StoryQuest
+
+      # LM Studio configuration (uncomment if using)
+      - LMSTUDIO_BASE_URL=http://host.docker.internal:1234
+      - LMSTUDIO_MODEL=local-model
 
       # Safety configuration
       - USE_ENHANCED_FILTER=true
@@ -76,7 +80,7 @@ services:
       - storyquest-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1/health"]
       interval: 30s
       timeout: 10s
       retries: 3

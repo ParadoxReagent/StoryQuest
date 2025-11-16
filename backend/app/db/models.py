@@ -6,7 +6,7 @@ Phase 3: Core Story Engine Backend
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, TypeDecorator
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -14,12 +14,49 @@ from sqlalchemy.orm import relationship
 Base = declarative_base()
 
 
+class GUID(TypeDecorator):
+    """Platform-independent GUID type.
+
+    Uses PostgreSQL's UUID type when available, otherwise uses
+    CHAR(36) for SQLite and other databases, storing as stringified hex values.
+    """
+    impl = String(36)
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == 'postgresql':
+            return dialect.type_descriptor(PGUUID(as_uuid=True))
+        else:
+            return dialect.type_descriptor(String(36))
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        elif dialect.name == 'postgresql':
+            return value
+        else:
+            if not isinstance(value, uuid4.__class__):
+                return str(value)
+            else:
+                return str(value)
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        else:
+            if not isinstance(value, uuid4.__class__):
+                from uuid import UUID
+                return UUID(value)
+            else:
+                return value
+
+
 class Session(Base):
     """Story session database model."""
     __tablename__ = "sessions"
 
     id = Column(
-        PGUUID(as_uuid=True),
+        GUID,
         primary_key=True,
         default=uuid4,
         nullable=False
@@ -44,13 +81,13 @@ class StoryTurn(Base):
     __tablename__ = "story_turns"
 
     id = Column(
-        PGUUID(as_uuid=True),
+        GUID,
         primary_key=True,
         default=uuid4,
         nullable=False
     )
     session_id = Column(
-        PGUUID(as_uuid=True),
+        GUID,
         ForeignKey("sessions.id", ondelete="CASCADE"),
         nullable=False,
         index=True
