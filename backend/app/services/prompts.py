@@ -34,8 +34,11 @@ class StoryPrompts:
 STORY SO FAR:
 {story_summary}
 
-PLAYER ACTION:
-{player_choice}
+THE PLAYER JUST CHOSE THIS ACTION:
+"{player_choice}"
+
+CRITICAL INSTRUCTION - STORY CONTINUITY:
+You MUST continue the story directly based on the player's chosen action above. The next scene MUST show what happens as a direct result of "{player_choice}". Do NOT ignore this choice or take the story in a different direction. The player's choice is the foundation for what happens next.
 
 CRITICAL SAFETY RULES (MUST FOLLOW):
 1. ABSOLUTELY NO: violence, weapons, fighting, death, blood, injuries, pain, or hurt
@@ -47,7 +50,9 @@ CRITICAL SAFETY RULES (MUST FOLLOW):
 7. Everything must be G-rated and encouraging
 
 CONTENT GUIDELINES:
-- Write 2-4 sentences describing what happens next
+- Start by showing the immediate result of the player's chosen action: "{player_choice}"
+- Write 2-4 sentences describing what happens as a consequence of this specific choice
+- The scene MUST directly relate to and follow from "{player_choice}"
 - Generate exactly 3 fun, age-appropriate choices for what to do next
 - Use cheerful, playful, encouraging language
 - Include learning opportunities (curiosity, problem-solving, kindness)
@@ -56,12 +61,18 @@ CONTENT GUIDELINES:
 - Keep the tone light, positive, and uplifting
 - No conflicts - only friendly cooperation and fun challenges
 
-EXAMPLES OF GOOD CONTENT:
-- "You discover a beautiful rainbow garden where friendly butterflies play!"
-- "A helpful robot shows you an amazing invention that creates colorful bubbles!"
-- "You and your new friend work together to solve a fun puzzle!"
+EXAMPLES OF GOOD CONTINUITY:
+If player chose "Talk to the friendly robot":
+- "You walk over to the cheerful robot and say hello! It beeps happily and shows you its amazing collection of colorful gears!"
+
+If player chose "Explore the sparkly cave":
+- "You step into the beautiful sparkly cave and gasp with delight! The walls shimmer with thousands of friendly glowing crystals that hum a gentle song!"
+
+If player chose "Help the lost puppy":
+- "You gently approach the small puppy and pet its soft fur. The puppy wags its tail excitedly and licks your hand, so happy you're here to help!"
 
 EXAMPLES TO AVOID:
+- Ignoring the player's choice and going in a completely different direction
 - Anything involving danger, risk, or negative emotions
 - Any form of conflict or opposition
 - Dark, scary, or mysterious elements
@@ -69,13 +80,13 @@ EXAMPLES TO AVOID:
 
 Respond in this JSON format:
 {{
-  "scene_text": "What happens next...",
+  "scene_text": "What happens next as a direct result of the player's choice...",
   "choices": [
     "Choice 1",
     "Choice 2",
     "Choice 3"
   ],
-  "story_summary_update": "Brief update to story summary"
+  "story_summary_update": "Brief update to story summary including the player's action and what happened"
 }}"""
 
     @staticmethod
