@@ -11,6 +11,7 @@ from app.services.llm_provider import (
     AnthropicProvider,
     GeminiProvider,
     LLMProvider,
+    LMStudioProvider,
     OllamaProvider,
     OpenAIProvider,
     OpenRouterProvider,
@@ -95,10 +96,16 @@ def create_llm_provider(config: Optional[AppConfig] = None) -> LLMProvider:
             app_name=config.llm.openrouter.app_name,
         )
 
+    elif provider_type == "lmstudio":
+        return LMStudioProvider(
+            model=config.llm.lmstudio.model,
+            base_url=config.llm.lmstudio.base_url
+        )
+
     else:
         raise ValueError(
             f"Unknown LLM provider: {provider_type}. "
-            f"Must be one of: ollama, openai, anthropic, gemini, openrouter"
+            f"Must be one of: ollama, openai, anthropic, gemini, openrouter, lmstudio"
         )
 
 
