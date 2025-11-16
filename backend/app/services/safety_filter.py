@@ -159,61 +159,25 @@ class SafetyFilter:
         Get a safe fallback response if LLM output is rejected.
 
         Args:
-            theme: Story theme
+            theme: Story theme (can be any dynamically generated theme)
 
         Returns:
             Tuple of (scene_text, choices)
         """
-        fallback_scenes = {
-            "space_adventure": (
-                "You float peacefully in your spaceship, looking at the beautiful stars through the window. "
-                "The computer beeps cheerfully, ready for your next command.",
-                [
-                    "Check the navigation system",
-                    "Look at the star map",
-                    "Take a moment to draw what you see"
-                ]
-            ),
-            "magical_forest": (
-                "You find yourself in a peaceful clearing filled with colorful flowers and friendly butterflies. "
-                "A gentle breeze rustles the leaves above you.",
-                [
-                    "Pick some flowers",
-                    "Follow the butterflies",
-                    "Rest under a tree"
-                ]
-            ),
-            "underwater_quest": (
-                "You swim through clear, warm water, surrounded by colorful fish and coral. "
-                "The sun's rays create beautiful patterns on the ocean floor.",
-                [
-                    "Follow the colorful fish",
-                    "Explore the coral reef",
-                    "Float and watch the bubbles"
-                ]
-            ),
-            "dinosaur_discovery": (
-                "You're in a lush valley where friendly dinosaurs munch on leaves and play together. "
-                "A small dinosaur waves its tail at you in greeting.",
-                [
-                    "Wave back to the dinosaur",
-                    "Look for interesting plants",
-                    "Find a good spot to observe"
-                ]
-            ),
-        }
+        # Generic fallback that works for any theme
+        # Convert theme ID to readable format (e.g., "space_adventure" -> "Space Adventure")
+        theme_readable = theme.replace("_", " ").title()
 
-        # Default fallback if theme not found
-        default = (
-            "You find yourself in a wonderful place filled with possibilities. "
-            "Everything around you is peaceful and inviting.",
-            [
-                "Look around carefully",
-                "Take a deep breath and think",
-                "Choose a direction to explore"
-            ]
+        scene = (
+            f"You find yourself in a wonderful place on your {theme_readable} adventure. "
+            "Everything around you is peaceful, inviting, and full of exciting possibilities!"
         )
 
-        scene, choices = fallback_scenes.get(theme, default)
+        choices = [
+            "Look around carefully and observe",
+            "Take a deep breath and think about what to do",
+            "Choose a direction to explore"
+        ]
+
         logger.info(f"Using fallback response for theme: {theme}")
         return scene, choices

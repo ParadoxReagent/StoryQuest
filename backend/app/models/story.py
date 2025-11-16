@@ -82,3 +82,22 @@ class LLMStoryResponse(BaseModel):
     scene_text: str = Field(..., description="The narrative text for the next scene")
     choices: Optional[List[str]] = Field(default=None, description="List of 3 choice options (optional for final turn)")
     story_summary_update: str = Field(..., description="Updated story summary")
+
+
+class GenerateThemesRequest(BaseModel):
+    """Request to generate random story themes."""
+    age_range: str = Field(..., description="Target age range (e.g., '6-8', '9-12')")
+
+
+class ThemeOption(BaseModel):
+    """A single theme option."""
+    id: str = Field(..., description="Unique identifier for this theme")
+    name: str = Field(..., description="Display name of the theme")
+    description: str = Field(..., description="Short description of the theme adventure")
+    emoji: str = Field(..., description="Emoji representing the theme")
+    color: str = Field(..., description="Tailwind gradient classes for theme card")
+
+
+class GenerateThemesResponse(BaseModel):
+    """Response containing generated themes."""
+    themes: List[ThemeOption] = Field(..., description="List of generated theme options")

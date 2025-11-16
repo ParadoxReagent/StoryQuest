@@ -17,8 +17,11 @@ from app.db.database import get_db_session
 from app.db.models import Session as SessionModel
 from app.models.story import (
     ContinueStoryRequest,
+    GenerateThemesRequest,
+    GenerateThemesResponse,
     StartStoryRequest,
     StoryResponse,
+    ThemeOption,
 )
 from app.services.llm_factory import create_llm_provider
 from app.services.prompts import StoryPrompts
@@ -524,6 +527,123 @@ async def get_session(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve session. Please try again."
+        )
+
+
+@router.post("/generate-themes", response_model=GenerateThemesResponse)
+async def generate_themes(
+    request: GenerateThemesRequest
+) -> GenerateThemesResponse:
+    """
+    Generate random age-appropriate story themes using LLM.
+
+    Args:
+        request: Contains age_range for generating appropriate themes
+
+    Returns:
+        GenerateThemesResponse with list of 6 randomly generated themes
+    """
+    try:
+        logger.info(f"Generating themes for age range: {request.age_range}")
+        config = get_config()
+        llm_provider = create_llm_provider(config)
+
+        # Define color options for the themes
+        color_options = [
+            "from-indigo-400 to-purple-500",
+            "from-green-400 to-emerald-500",
+            "from-cyan-400 to-blue-500",
+            "from-orange-400 to-red-500",
+            "from-yellow-400 to-amber-500",
+            "from-pink-400 to-rose-500",
+            "from-teal-400 to-cyan-500",
+            "from-violet-400 to-fuchsia-500",
+        ]
+
+        # Create prompt for LLM to generate themes
+        age_label = "6-8 years old" if request.age_range == "6-8" else "9-12 years old"
+        prompt = f"""Generate 6 unique and exciting story themes for children aged {age_label}.
+Each theme should be:
+- Age-appropriate, safe, and positive
+- Adventurous and engaging
+- Different from each other
+- Suitable for an interactive story experience
+
+For each theme provide:
+1. A short, catchy name (2-4 words, title case)
+2. A brief, exciting description (one sentence, about 10-15 words)
+3. A single emoji that represents the theme
+
+Format your response as a JSON array with 6 objects, each having:
+- "name": the theme name
+- "description": the description
+- "emoji": a single emoji
+
+Example format:
+[
+  {{"name": "Space Adventure", "description": "Explore planets, stars, and meet friendly aliens!", "emoji": "🚀"}},
+  {{"name": "Magical Forest", "description": "Journey through an enchanted forest with magical creatures!", "emoji": "🌲"}}
+]
+
+Generate 6 completely new and creative themes now (do not use the examples above):"""
+
+        system_message = """You are a creative children's storyteller who creates engaging, age-appropriate story themes.
+Your themes are always positive, safe, and exciting for children. You respond ONLY with valid JSON."""
+
+        # Call LLM to generate themes
+        response = await llm_provider.generate_story_continuation(
+            prompt=prompt,
+            system_message=system_message,
+            max_tokens=800,
+            temperature=0.9  # Higher temperature for more creative variety
+        )
+
+        # Parse JSON response
+        try:
+            # Extract JSON from response
+            import re
+            json_match = re.search(r'\[.*\]', response, re.DOTALL)
+            if json_match:
+                themes_data = json.loads(json_match.group())
+            else:
+                # Fallback if no JSON found
+                raise ValueError("No JSON array found in LLM response")
+
+            # Validate we got 6 themes
+            if len(themes_data) < 6:
+                raise ValueError(f"Expected 6 themes, got {len(themes_data)}")
+
+            # Create theme options
+            themes = []
+            for i, theme_data in enumerate(themes_data[:6]):  # Take first 6
+                # Create a URL-safe ID from the name
+                theme_id = theme_data["name"].lower().replace(" ", "_").replace("'", "")
+                # Remove any non-alphanumeric characters except underscores
+                theme_id = re.sub(r'[^a-z0-9_]', '', theme_id)
+
+                themes.append(ThemeOption(
+                    id=theme_id,
+                    name=theme_data["name"],
+                    description=theme_data["description"],
+                    emoji=theme_data["emoji"],
+                    color=color_options[i % len(color_options)]
+                ))
+
+            return GenerateThemesResponse(themes=themes)
+
+        except (json.JSONDecodeError, KeyError, ValueError) as e:
+            logger.error(f"Failed to parse LLM theme response: {e}")
+            logger.error(f"LLM response was: {response}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to generate themes. Please try again."
+            )
+
+    except Exception as e:
+        logger.error(f"Error generating themes: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to generate themes. Please try again."
         )
 
 
