@@ -1,10 +1,13 @@
 /**
  * ThemeSelection Component
  * Allows the player to start a new story with a chosen theme
+ * Enhanced with animations and skeleton screens (Optimization 2.1)
  */
 
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { generateThemes } from '../services/api';
+import ThemeCardSkeleton from './ThemeCardSkeleton';
 import type { ThemeOption } from '../types/api';
 
 interface ThemeSelectionProps {
@@ -154,11 +157,12 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
             Choose your adventure!
           </label>
 
-          {/* Loading state */}
+          {/* Loading state with skeleton screens - Optimization 2.1 */}
           {loadingThemes && (
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary-500 mb-4"></div>
-              <p className="font-kid text-lg text-gray-600">Creating magical themes just for you...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <ThemeCardSkeleton key={i} />
+              ))}
             </div>
           )}
 
@@ -186,24 +190,29 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
             </div>
           )}
 
-          {/* Themes grid */}
+          {/* Themes grid with staggered entry animations - Optimization 2.1 */}
           {!loadingThemes && !themesError && themes.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {themes.map((theme) => (
-                <button
+              {themes.map((theme, i) => (
+                <motion.button
                   key={theme.id}
                   type="button"
                   onClick={() => setSelectedTheme(theme.id)}
                   disabled={disabled}
                   style={selectedTheme === theme.id ? getGradientStyle(theme.color) : undefined}
                   className={`
-                    p-6 rounded-xl border-4 transition-all duration-200 text-left
+                    p-6 rounded-xl border-4 transition-colors duration-200 text-left
                     ${selectedTheme === theme.id
-                      ? 'border-white text-white scale-105 shadow-xl'
-                      : 'bg-white border-gray-300 hover:border-primary-400 hover:scale-102 shadow-md'
+                      ? 'border-white text-white shadow-xl'
+                      : 'bg-white border-gray-300 hover:border-primary-400 shadow-md'
                     }
                     disabled:opacity-50 disabled:cursor-not-allowed
                   `}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: selectedTheme === theme.id ? 1.05 : 1 }}
+                  transition={{ delay: i * 0.1, duration: 0.3 }}
+                  whileHover={!disabled ? { scale: selectedTheme === theme.id ? 1.05 : 1.02 } : undefined}
+                  whileTap={!disabled ? { scale: 0.98 } : undefined}
                   aria-label={`Select theme: ${theme.name}`}
                   aria-pressed={selectedTheme === theme.id}
                 >
@@ -214,28 +223,38 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
                   <div className={`font-kid text-sm ${selectedTheme === theme.id ? 'text-white/90' : 'text-gray-600'}`}>
                     {theme.description}
                   </div>
-                </button>
+                </motion.button>
               ))}
             </div>
           )}
         </div>
 
-        {/* Start Button */}
+        {/* Start Button with micro-interactions - Optimization 2.1 */}
         <div className="text-center">
-          <button
+          <motion.button
             type="submit"
             disabled={!isValid || disabled}
+            whileHover={isValid && !disabled ? {
+              scale: 1.1,
+              boxShadow: "0 20px 40px rgba(0, 0, 0, 0.2)"
+            } : undefined}
+            whileTap={isValid && !disabled ? { scale: 0.95 } : undefined}
+            transition={{
+              type: "spring",
+              stiffness: 400,
+              damping: 17
+            }}
             className={`
-              px-12 py-6 rounded-2xl border-4 font-kid text-2xl font-bold transition-all duration-200
+              px-12 py-6 rounded-2xl border-4 font-kid text-2xl font-bold transition-colors duration-200
               ${isValid && !disabled
-                ? 'bg-gradient-to-r from-green-400 to-green-500 border-green-600 text-white hover:from-green-500 hover:to-green-600 hover:scale-110 active:scale-95 shadow-xl hover:shadow-2xl'
+                ? 'bg-gradient-to-r from-green-400 to-green-500 border-green-600 text-white hover:from-green-500 hover:to-green-600 shadow-xl'
                 : 'bg-gray-300 border-gray-400 text-gray-500 cursor-not-allowed'
               }
             `}
             aria-label="Start adventure"
           >
             🎉 Start My Adventure! 🎉
-          </button>
+          </motion.button>
         </div>
       </form>
     </div>

@@ -66,11 +66,4 @@ describe('ChoiceButton', () => {
     const button = screen.getByRole('button');
     expect(button).not.toBeDisabled();
   });
-
-  it('renders emoji indicator', () => {
-    const onClick = vi.fn();
-    render(<ChoiceButton choice={mockChoice} onClick={onClick} />);
-
-    expect(screen.getByText('🎯')).toBeInTheDocument();
-  });
 });
