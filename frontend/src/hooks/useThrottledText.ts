@@ -24,13 +24,11 @@ interface UseThrottledTextOptions {
 /**
  * Hook that throttles text display for smooth streaming animation
  * @param sourceText - The actual streaming text from the API
- * @param isStreaming - Whether streaming is currently active
  * @param options - Configuration options
  * @returns The throttled text to display
  */
 export function useThrottledText(
   sourceText: string,
-  isStreaming: boolean,
   options: UseThrottledTextOptions = {}
 ): string {
   const { charsPerFrame = 2, frameDelay = 30 } = options;
@@ -40,18 +38,8 @@ export function useThrottledText(
   const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // If not streaming, show full text immediately
-    if (!isStreaming) {
-      setDisplayedText(sourceText);
-      displayedLengthRef.current = sourceText.length;
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      return;
-    }
-
-    // If streaming, gradually reveal text
+    // Always gradually reveal text, whether streaming or not
+    // This ensures smooth completion even after streaming stops
     if (displayedLengthRef.current < sourceText.length) {
       // Clear any existing interval
       if (intervalRef.current) {
@@ -88,7 +76,7 @@ export function useThrottledText(
         intervalRef.current = null;
       }
     };
-  }, [sourceText, isStreaming, charsPerFrame, frameDelay]);
+  }, [sourceText, charsPerFrame, frameDelay]);
 
   // Reset when source text becomes empty (new story/turn)
   useEffect(() => {

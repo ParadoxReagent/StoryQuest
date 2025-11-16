@@ -42,4 +42,18 @@ body {
     will-change: contents;
     contain: layout;
   }
+
+  /* Smooth text appearance */
+  .story-text-smooth {
+    animation: story-text-smooth 0.3s ease-out;
+  }
+
+  @keyframes story-text-smooth {
+    0% {
+      opacity: 0.7;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
 }

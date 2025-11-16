@@ -31,18 +31,17 @@ export const StoryView: React.FC<StoryViewProps> = ({
   streamingText = '',
   isStreaming = false,
 }) => {
-  // Throttle streaming text for smooth, consistent animation
-  // This prevents flickering on fast LLMs by controlling visual display speed
-  const throttledText = useThrottledText(streamingText, isStreaming, {
-    charsPerFrame: 3,  // Reveal 3 characters per frame
-    frameDelay: 20,    // Update every 20ms (50fps) = ~150 chars/second
+  // Throttle streaming text for smooth, natural fade-in
+  // Slower rate creates a pleasant, readable typing effect
+  const throttledText = useThrottledText(streamingText, {
+    charsPerFrame: 2,  // Reveal 2 characters per frame
+    frameDelay: 30,    // Update every 30ms (33fps) = ~66 chars/second
   });
 
   // Use the current scene text as the display text, with smooth transitions
-  // Show old scene text until new streaming text arrives
-  const displayText = isStreaming && throttledText ? throttledText : story.current_scene.text;
-  // Only show cursor when we have a reasonable amount of text streaming
-  const showCursor = isStreaming && throttledText.length > 10;
+  // Always prefer throttled text if it exists (even after streaming stops)
+  // This ensures smooth completion of the reveal animation
+  const displayText = throttledText || story.current_scene.text;
 
   const isFinished = story.metadata?.is_finished;
   const maxTurns = story.metadata?.max_turns;
@@ -98,12 +97,8 @@ export const StoryView: React.FC<StoryViewProps> = ({
       <div className="bg-white p-8 rounded-2xl border-4 border-primary-300 shadow-xl">
         <div className="prose prose-lg max-w-none story-text-container">
           <div className="min-h-[6rem]">
-            <p className="font-kid text-xl leading-relaxed text-gray-800 whitespace-pre-wrap">
+            <p className="font-kid text-xl leading-relaxed text-gray-800 whitespace-pre-wrap story-text-smooth">
               {displayText}
-              {/* Blinking cursor during streaming */}
-              {showCursor && (
-                <span className="inline-block w-0.5 h-6 bg-primary-500 ml-0.5 animate-pulse align-middle" />
-              )}
             </p>
           </div>
         </div>
