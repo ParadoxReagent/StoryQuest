@@ -67,3 +67,19 @@ export interface SessionHistory {
 export interface ApiError {
   detail: string;
 }
+
+export interface ThemeOption {
+  id: string;
+  name: string;
+  description: string;
+  emoji: string;
+  color: string;
+}
+
+export interface GenerateThemesRequest {
+  age_range: string;
+}
+
+export interface GenerateThemesResponse {
+  themes: ThemeOption[];
+}

@@ -186,28 +186,18 @@ Respond in this JSON format:
         Args:
             player_name: The player's name
             age_range: Target age range (e.g., "6-8", "9-12")
-            theme: Story theme (e.g., "space_adventure", "magical_forest")
+            theme: Story theme (e.g., "space_adventure", "magical_forest", or any dynamically generated theme)
 
         Returns:
             Formatted prompt string
         """
-        theme_descriptions = {
-            "space_adventure": "a thrilling space exploration adventure with planets, stars, and friendly aliens",
-            "magical_forest": "a whimsical journey through an enchanted forest with magical creatures",
-            "underwater_quest": "an exciting underwater adventure with sea creatures and hidden treasures",
-            "dinosaur_discovery": "a prehistoric adventure with friendly dinosaurs and ancient mysteries",
-            "castle_quest": "a medieval adventure in a grand castle with knights and dragons",
-            "robot_city": "a futuristic city adventure with helpful robots and amazing technology",
-        }
-
-        theme_desc = theme_descriptions.get(
-            theme,
-            "an exciting adventure filled with wonder and discovery"
-        )
+        # Convert theme ID to a human-readable description
+        # Replace underscores with spaces and capitalize words
+        theme_readable = theme.replace("_", " ").title()
 
         return f"""You are a creative, kid-friendly storyteller for children aged {age_range}.
 
-Create the opening scene for a brand new story about {player_name}, who is about to begin {theme_desc}.
+Create the opening scene for a brand new story about {player_name}, who is about to begin an exciting {theme_readable} adventure.
 
 CRITICAL SAFETY RULES (MUST FOLLOW):
 1. ABSOLUTELY NO: violence, weapons, fighting, death, blood, injuries, pain, or hurt

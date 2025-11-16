@@ -511,79 +511,26 @@ class EnhancedSafetyFilter:
         Get a safe fallback response if LLM output is rejected.
 
         Args:
-            theme: Story theme
+            theme: Story theme (can be any dynamically generated theme)
 
         Returns:
             Tuple of (scene_text, choices)
         """
-        fallback_scenes = {
-            "space_adventure": (
-                "You float peacefully in your spaceship, looking at the beautiful twinkling stars through the window. "
-                "Your friendly robot companion beeps happily, ready to help with your next adventure!",
-                [
-                    "Check the colorful control panel",
-                    "Look at the amazing star map",
-                    "Draw the beautiful stars you see"
-                ]
-            ),
-            "magical_forest": (
-                "You find yourself in a peaceful clearing filled with colorful flowers and friendly butterflies dancing in the sunshine. "
-                "A gentle breeze carries the sweet smell of flowers.",
-                [
-                    "Pick some pretty flowers",
-                    "Follow the happy butterflies",
-                    "Rest under a friendly tree"
-                ]
-            ),
-            "underwater_quest": (
-                "You swim through clear, warm water, surrounded by friendly colorful fish and beautiful coral. "
-                "The sun's rays create magical sparkly patterns on the sandy ocean floor.",
-                [
-                    "Follow the rainbow fish",
-                    "Explore the pretty coral reef",
-                    "Float and watch the dancing bubbles"
-                ]
-            ),
-            "dinosaur_discovery": (
-                "You're in a sunny green valley where friendly dinosaurs munch on tasty leaves and play together happily. "
-                "A small, cute dinosaur waves its tail at you in a friendly greeting!",
-                [
-                    "Wave back to the friendly dinosaur",
-                    "Look for interesting colorful plants",
-                    "Find a cozy spot to watch and learn"
-                ]
-            ),
-            "castle_quest": (
-                "You stand in a beautiful castle courtyard filled with colorful flags and friendly knights practicing fun games. "
-                "A kind wizard waves their sparkly wand, creating rainbow bubbles!",
-                [
-                    "Wave to the friendly wizard",
-                    "Watch the fun knight games",
-                    "Explore the pretty garden"
-                ]
-            ),
-            "robot_city": (
-                "You're in a bright, shiny city where helpful robots zoom around doing fun tasks and waving hello. "
-                "The buildings sparkle with colorful lights like a cheerful rainbow!",
-                [
-                    "Wave to the friendly robots",
-                    "Look at the amazing buildings",
-                    "Visit the fun robot playground"
-                ]
-            ),
-        }
+        # Generic fallback that works for any theme
+        # Convert theme ID to readable format (e.g., "space_adventure" -> "Space Adventure")
+        theme_readable = theme.replace("_", " ").title()
 
-        default = (
-            "You find yourself in a wonderful, magical place filled with amazing possibilities and friendly faces. "
-            "Everything around you is peaceful, colorful, and inviting!",
-            [
-                "Look around at the beautiful scenery",
-                "Take a happy deep breath",
-                "Choose a fun direction to explore"
-            ]
+        scene = (
+            f"You find yourself in a wonderful, magical place on your {theme_readable} adventure. "
+            "Everything around you is peaceful, colorful, inviting, and filled with amazing possibilities!"
         )
 
-        scene, choices = fallback_scenes.get(theme, default)
+        choices = [
+            "Look around at the beautiful scenery",
+            "Take a happy deep breath and think",
+            "Choose a fun direction to explore"
+        ]
+
         logger.info(f"Using positive fallback response for theme: {theme}")
         return scene, choices
 

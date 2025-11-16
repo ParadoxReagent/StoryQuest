@@ -10,6 +10,8 @@ import type {
   StoryResponse,
   SessionHistory,
   ApiError,
+  GenerateThemesRequest,
+  GenerateThemesResponse,
 } from '../types/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -41,6 +43,19 @@ export async function startStory(request: StartStoryRequest): Promise<StoryRespo
 export async function continueStory(request: ContinueStoryRequest): Promise<StoryResponse> {
   try {
     const response = await api.post<StoryResponse>('/api/v1/story/continue', request);
+    return response.data;
+  } catch (error) {
+    handleApiError(error);
+    throw error;
+  }
+}
+
+/**
+ * Generate random story themes for the given age range
+ */
+export async function generateThemes(request: GenerateThemesRequest): Promise<GenerateThemesResponse> {
+  try {
+    const response = await api.post<GenerateThemesResponse>('/api/v1/story/generate-themes', request);
     return response.data;
   } catch (error) {
     handleApiError(error);

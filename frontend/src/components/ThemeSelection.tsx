@@ -3,65 +3,14 @@
  * Allows the player to start a new story with a chosen theme
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { generateThemes } from '../services/api';
+import type { ThemeOption } from '../types/api';
 
 interface ThemeSelectionProps {
   onStart: (playerName: string, ageRange: string, theme: string) => void;
   disabled?: boolean;
 }
-
-interface Theme {
-  id: string;
-  name: string;
-  description: string;
-  emoji: string;
-  color: string;
-}
-
-const themes: Theme[] = [
-  {
-    id: 'space_adventure',
-    name: 'Space Adventure',
-    description: 'Explore planets, stars, and meet friendly aliens!',
-    emoji: '🚀',
-    color: 'from-indigo-400 to-purple-500',
-  },
-  {
-    id: 'magical_forest',
-    name: 'Magical Forest',
-    description: 'Journey through an enchanted forest with magical creatures!',
-    emoji: '🌲',
-    color: 'from-green-400 to-emerald-500',
-  },
-  {
-    id: 'underwater_quest',
-    name: 'Underwater Quest',
-    description: 'Dive deep and discover hidden treasures!',
-    emoji: '🌊',
-    color: 'from-cyan-400 to-blue-500',
-  },
-  {
-    id: 'dinosaur_discovery',
-    name: 'Dinosaur Discovery',
-    description: 'Travel back in time to meet friendly dinosaurs!',
-    emoji: '🦕',
-    color: 'from-orange-400 to-red-500',
-  },
-  {
-    id: 'castle_quest',
-    name: 'Castle Quest',
-    description: 'Explore a grand castle with knights and dragons!',
-    emoji: '🏰',
-    color: 'from-yellow-400 to-amber-500',
-  },
-  {
-    id: 'robot_city',
-    name: 'Robot City',
-    description: 'Visit a futuristic city with helpful robots!',
-    emoji: '🤖',
-    color: 'from-gray-400 to-slate-500',
-  },
-];
 
 const ageRanges = [
   { value: '6-8', label: '6-8 years old' },
@@ -72,6 +21,30 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
   const [playerName, setPlayerName] = useState('');
   const [ageRange, setAgeRange] = useState('6-8');
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
+  const [themes, setThemes] = useState<ThemeOption[]>([]);
+  const [loadingThemes, setLoadingThemes] = useState(true);
+  const [themesError, setThemesError] = useState<string | null>(null);
+
+  // Fetch themes when component mounts or age range changes
+  useEffect(() => {
+    const fetchThemes = async () => {
+      setLoadingThemes(true);
+      setThemesError(null);
+      setSelectedTheme(null); // Reset selection when themes change
+
+      try {
+        const response = await generateThemes({ age_range: ageRange });
+        setThemes(response.themes);
+      } catch (error) {
+        console.error('Failed to generate themes:', error);
+        setThemesError('Failed to load themes. Please try again.');
+      } finally {
+        setLoadingThemes(false);
+      }
+    };
+
+    fetchThemes();
+  }, [ageRange]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,34 +119,70 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
           <label className="block mb-4 font-kid text-xl font-bold text-primary-700">
             Choose your adventure! 🎮
           </label>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {themes.map((theme) => (
+
+          {/* Loading state */}
+          {loadingThemes && (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary-500 mb-4"></div>
+              <p className="font-kid text-lg text-gray-600">Creating magical themes just for you...</p>
+            </div>
+          )}
+
+          {/* Error state */}
+          {themesError && !loadingThemes && (
+            <div className="text-center py-8">
+              <p className="font-kid text-lg text-red-600 mb-4">{themesError}</p>
               <button
-                key={theme.id}
                 type="button"
-                onClick={() => setSelectedTheme(theme.id)}
-                disabled={disabled}
-                className={`
-                  p-6 rounded-xl border-4 transition-all duration-200 text-left
-                  ${selectedTheme === theme.id
-                    ? `bg-gradient-to-br ${theme.color} border-white text-white scale-105 shadow-xl`
-                    : 'bg-white border-gray-300 hover:border-primary-400 hover:scale-102 shadow-md'
-                  }
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                `}
-                aria-label={`Select theme: ${theme.name}`}
-                aria-pressed={selectedTheme === theme.id}
+                onClick={() => {
+                  setLoadingThemes(true);
+                  setThemesError(null);
+                  generateThemes({ age_range: ageRange })
+                    .then(response => setThemes(response.themes))
+                    .catch(error => {
+                      console.error('Failed to generate themes:', error);
+                      setThemesError('Failed to load themes. Please try again.');
+                    })
+                    .finally(() => setLoadingThemes(false));
+                }}
+                className="px-6 py-3 bg-primary-500 text-white font-kid text-lg rounded-xl hover:bg-primary-600 transition-colors"
               >
-                <div className="text-5xl mb-3">{theme.emoji}</div>
-                <div className={`font-kid text-xl font-bold mb-2 ${selectedTheme === theme.id ? 'text-white' : 'text-gray-800'}`}>
-                  {theme.name}
-                </div>
-                <div className={`font-kid text-sm ${selectedTheme === theme.id ? 'text-white/90' : 'text-gray-600'}`}>
-                  {theme.description}
-                </div>
+                Try Again
               </button>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {/* Themes grid */}
+          {!loadingThemes && !themesError && themes.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {themes.map((theme) => (
+                <button
+                  key={theme.id}
+                  type="button"
+                  onClick={() => setSelectedTheme(theme.id)}
+                  disabled={disabled}
+                  className={`
+                    p-6 rounded-xl border-4 transition-all duration-200 text-left
+                    ${selectedTheme === theme.id
+                      ? `bg-gradient-to-br ${theme.color} border-white text-white scale-105 shadow-xl`
+                      : 'bg-white border-gray-300 hover:border-primary-400 hover:scale-102 shadow-md'
+                    }
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                  `}
+                  aria-label={`Select theme: ${theme.name}`}
+                  aria-pressed={selectedTheme === theme.id}
+                >
+                  <div className="text-5xl mb-3">{theme.emoji}</div>
+                  <div className={`font-kid text-xl font-bold mb-2 ${selectedTheme === theme.id ? 'text-white' : 'text-gray-800'}`}>
+                    {theme.name}
+                  </div>
+                  <div className={`font-kid text-sm ${selectedTheme === theme.id ? 'text-white/90' : 'text-gray-600'}`}>
+                    {theme.description}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Start Button */}
