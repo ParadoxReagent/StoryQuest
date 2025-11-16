@@ -163,7 +163,7 @@ export const StoryView: React.FC<StoryViewProps> = ({
 
       {/* Fixed Choice Bar - Mobile/Tablet - Optimization 1.1 */}
       {!disabled && !isStreaming && !isFinished && (
-        <div className="lg:hidden flex-none border-t-4 border-primary-300 bg-white/95 backdrop-blur-sm shadow-2xl">
+        <div className="lg:hidden fixed inset-x-0 bottom-0 z-30 border-t-4 border-primary-300 bg-white/95 backdrop-blur-sm shadow-2xl">
           <div className="max-w-4xl mx-auto p-4 space-y-3">
             <h3 className="font-kid text-lg sm:text-xl font-bold text-center text-primary-700">
               What would you like to do? 🤔
