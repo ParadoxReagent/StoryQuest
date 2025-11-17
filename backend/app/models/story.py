@@ -45,7 +45,7 @@ class StartStoryRequest(BaseModel):
     """Request to start a new story."""
     player_name: str = Field(..., min_length=1, max_length=100, description="The player's name")
     age_range: str = Field(..., description="Target age range (e.g., '6-8', '9-12')")
-    theme: str = Field(..., description="Story theme (e.g., 'space_adventure', 'magical_forest')")
+    theme: str = Field(..., min_length=3, max_length=200, description="Story theme (e.g., 'space_adventure', 'magical_forest', or custom theme)")
 
 
 class ContinueStoryRequest(BaseModel):

@@ -61,6 +61,8 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
   const [playerName, setPlayerName] = useState('');
   const [ageRange, setAgeRange] = useState('6-8');
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
+  const [customTheme, setCustomTheme] = useState('');
+  const [isCustomTheme, setIsCustomTheme] = useState(false);
   const [themes, setThemes] = useState<ThemeOption[]>([]);
   const [loadingThemes, setLoadingThemes] = useState(true);
   const [themesError, setThemesError] = useState<string | null>(null);
@@ -71,6 +73,8 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
       setLoadingThemes(true);
       setThemesError(null);
       setSelectedTheme(null); // Reset selection when themes change
+      setIsCustomTheme(false); // Reset custom theme flag
+      setCustomTheme(''); // Reset custom theme input
 
       try {
         const response = await generateThemes({ age_range: ageRange });
@@ -88,12 +92,29 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (playerName.trim() && selectedTheme) {
-      onStart(playerName.trim(), ageRange, selectedTheme);
+    const themeToUse = isCustomTheme ? customTheme.trim() : selectedTheme;
+    if (playerName.trim() && themeToUse) {
+      onStart(playerName.trim(), ageRange, themeToUse);
     }
   };
 
-  const isValid = playerName.trim().length > 0 && selectedTheme !== null;
+  const handleThemeSelect = (themeId: string) => {
+    setSelectedTheme(themeId);
+    setIsCustomTheme(false);
+    setCustomTheme('');
+  };
+
+  const handleCustomThemeChange = (value: string) => {
+    setCustomTheme(value);
+    if (value.trim()) {
+      setIsCustomTheme(true);
+      setSelectedTheme(null);
+    } else {
+      setIsCustomTheme(false);
+    }
+  };
+
+  const isValid = playerName.trim().length > 0 && (selectedTheme !== null || (isCustomTheme && customTheme.trim().length > 0));
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -233,7 +254,7 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
                 <motion.button
                   key={theme.id}
                   type="button"
-                  onClick={() => setSelectedTheme(theme.id)}
+                  onClick={() => handleThemeSelect(theme.id)}
                   disabled={disabled}
                   style={selectedTheme === theme.id ? getGradientStyle(theme.color) : undefined}
                   className={`
@@ -265,12 +286,52 @@ export const ThemeSelection: React.FC<ThemeSelectionProps> = ({ onStart, disable
           )}
         </motion.div>
 
+        {/* Custom Theme Input Section */}
+        <motion.div
+          className="bg-white dark:bg-dark-bg-secondary p-6 rounded-2xl border-4 border-primary-300 dark:border-dark-border-primary shadow-card dark:shadow-card-dark transition-colors duration-250"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.6, duration: 0.4 }}
+        >
+          <label htmlFor="custom-theme" className="block mb-3 font-heading text-xl font-bold text-primary-700 dark:text-primary-400 flex items-center gap-2">
+            <span className="text-2xl">✨</span>
+            Or, create your own adventure theme!
+          </label>
+          <input
+            type="text"
+            id="custom-theme"
+            value={customTheme}
+            onChange={(e) => handleCustomThemeChange(e.target.value)}
+            disabled={disabled}
+            placeholder="Type your own theme... (e.g., 'Space pirates exploring ancient alien ruins')"
+            maxLength={200}
+            className={`
+              w-full p-4 border-4 rounded-xl font-body text-lg bg-white dark:bg-dark-bg-tertiary text-gray-800 dark:text-dark-text-primary placeholder-gray-400 dark:placeholder-dark-text-tertiary focus:outline-none disabled:bg-gray-100 dark:disabled:bg-dark-bg-primary disabled:cursor-not-allowed transition-all duration-250
+              ${isCustomTheme
+                ? 'border-primary-500 dark:border-primary-400 ring-4 ring-primary-200 dark:ring-primary-500/30'
+                : 'border-primary-200 dark:border-dark-border-secondary focus:border-primary-400 dark:focus:border-primary-500'
+              }
+            `}
+            aria-label="Custom theme input"
+          />
+          {customTheme.trim() && (
+            <motion.p
+              className="mt-2 text-sm font-body text-primary-600 dark:text-primary-400 flex items-center gap-1"
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <span>🎨</span>
+              Your custom theme is ready!
+            </motion.p>
+          )}
+        </motion.div>
+
         {/* Optimization 2.2 & 2.3: Enhanced Start Button with better typography */}
         <motion.div
           className="text-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.4 }}
+          transition={{ delay: 0.7, duration: 0.4 }}
         >
           <motion.button
             type="submit"
