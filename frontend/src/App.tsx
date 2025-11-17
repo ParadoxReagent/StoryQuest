@@ -5,6 +5,7 @@
  */
 
 import { useState } from 'react';
+import { toast, Toaster } from 'sonner';
 import { startStoryStream, continueStoryStream } from './services/api';
 import type { StoryResponse } from './types/api';
 import ThemeSelection from './components/ThemeSelection';
@@ -134,11 +135,16 @@ function App() {
             turn_number: 0,
           },
         ]);
+        // Optimization 3.1: Toast notification on success
+        toast.success('Story started! 🎉');
       }
     } catch (err) {
       console.error('Failed to start story:', err);
-      setError(getErrorMessage(err) || 'Failed to start story. Please try again.');
+      const errorMessage = getErrorMessage(err) || 'Failed to start story. Please try again.';
+      setError(errorMessage);
       setAppState('error');
+      // Optimization 3.1: Toast notification on error
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
       setIsStreaming(false);
@@ -215,11 +221,16 @@ function App() {
         };
 
         setStory(response);
+        // Optimization 3.1: Toast notification on success
+        toast.success('Story continued! ✨');
       }
     } catch (err) {
       console.error('Failed to continue story:', err);
-      setError(getErrorMessage(err) || 'Failed to continue story. Please try again.');
+      const errorMessage = getErrorMessage(err) || 'Failed to continue story. Please try again.';
+      setError(errorMessage);
       setAppState('error');
+      // Optimization 3.1: Toast notification on error
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
       setIsStreaming(false);
@@ -294,11 +305,16 @@ function App() {
         };
 
         setStory(response);
+        // Optimization 3.1: Toast notification on success
+        toast.success('Story continued! ✨');
       }
     } catch (err) {
       console.error('Failed to continue story:', err);
-      setError(getErrorMessage(err) || 'Failed to continue story. Please try again.');
+      const errorMessage = getErrorMessage(err) || 'Failed to continue story. Please try again.';
+      setError(errorMessage);
       setAppState('error');
+      // Optimization 3.1: Toast notification on error
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
       setIsStreaming(false);
@@ -329,6 +345,9 @@ function App() {
 
   return (
     <div className="min-h-screen">
+      {/* Optimization 3.1: Toast Notifications */}
+      <Toaster position="top-center" richColors />
+
       {/* Optimization 2.4: Dark Mode Toggle */}
       <ThemeToggle />
 

@@ -221,12 +221,17 @@ class StoryEngine:
 
         # Generate continuation
         turns_remaining = max_turns - (db_session_model.turns + 1)
+        current_turn = db_session_model.turns + 1  # Next turn to be generated
+
+        # Optimization 9.2 & 9.3: Pass current_turn and max_turns for dynamic prompts
         prompt = self.prompts.get_story_continuation_prompt(
             age_range=db_session_model.age_range,
             story_summary=story_summary,
             player_choice=player_action,
             player_name=db_session_model.player_name,
-            turns_remaining=turns_remaining
+            turns_remaining=turns_remaining,
+            current_turn=current_turn,
+            max_turns=max_turns
         )
         system_message = self.prompts.get_system_message(db_session_model.age_range)
 

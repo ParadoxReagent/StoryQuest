@@ -1,13 +1,123 @@
 """
 LLM prompt templates for story generation.
 Phase 1: Story format & API contract
+Optimizations 9.2 & 9.3: Dynamic prompt adaptation and emotional arc guidance
 """
 
 from typing import Dict
 
 
+# Optimization 9.3: Emotional Arc Guidance
+# Maps turn ranges to emotional tones for a structured narrative arc
+EMOTIONAL_ARC = {
+    1: "curious and inviting",
+    2: "exciting and adventurous",
+    3: "exciting and adventurous",
+    4: "challenging with rising tension",
+    5: "challenging with rising tension",
+    6: "challenging with rising tension",
+    7: "triumphant and satisfying",
+    8: "triumphant and satisfying",
+    "final": "peaceful and conclusive"
+}
+
+
+def get_emotional_tone(turn: int, max_turns: int) -> str:
+    """
+    Get the appropriate emotional tone for a given turn.
+
+    Args:
+        turn: Current turn number (1-indexed)
+        max_turns: Total number of turns in the story
+
+    Returns:
+        Emotional tone description
+    """
+    if turn >= max_turns:
+        return EMOTIONAL_ARC["final"]
+    elif turn <= 1:
+        return EMOTIONAL_ARC[1]
+    elif turn <= 3:
+        return EMOTIONAL_ARC.get(turn, EMOTIONAL_ARC[2])
+    elif turn > max_turns - 3:
+        # Climax phase (last 2-3 turns before final)
+        return EMOTIONAL_ARC.get(7, EMOTIONAL_ARC[7])
+    else:
+        # Middle/challenging phase
+        tone_key = min(turn, 6)
+        return EMOTIONAL_ARC.get(tone_key, EMOTIONAL_ARC[4])
+
+
 class StoryPrompts:
     """Template manager for LLM prompts."""
+
+    @staticmethod
+    def get_prompt_phase(turn: int, max_turns: int) -> str:
+        """
+        Optimization 9.2: Dynamic Prompt Adaptation
+        Determine the story phase based on current turn and max turns.
+
+        Args:
+            turn: Current turn number (1-indexed, includes the turn about to be generated)
+            max_turns: Maximum turns in the story
+
+        Returns:
+            Phase identifier: 'opening', 'adventure', 'wrapup', or 'ending'
+        """
+        if turn == 1:
+            return 'opening'
+        elif turn >= max_turns:
+            return 'ending'
+        elif turn >= max_turns - 2:  # Last 3 turns before final
+            return 'wrapup'
+        else:
+            return 'adventure'
+
+    @staticmethod
+    def get_phase_guidance(phase: str) -> str:
+        """
+        Get prompt guidance based on story phase.
+
+        Args:
+            phase: Story phase ('opening', 'adventure', 'wrapup', 'ending')
+
+        Returns:
+            Guidance text for the LLM
+        """
+        guidance = {
+            'opening': """
+STORY PHASE: OPENING (Setting the Scene)
+Focus on:
+- Introducing the world and setting with vivid, welcoming descriptions
+- Establishing a sense of wonder and excitement
+- Making the player feel invited into this new world
+- Creating a strong foundation for the adventure ahead
+""",
+            'adventure': """
+STORY PHASE: ADVENTURE (Action & Discovery)
+Focus on:
+- Exciting discoveries and fun challenges
+- Active exploration and problem-solving
+- Meeting new friendly characters
+- Building momentum with engaging activities
+- Each scene should advance the story with new elements
+""",
+            'wrapup': """
+STORY PHASE: WRAP-UP (Approaching Conclusion)
+Focus on:
+- Beginning to tie up loose ends
+- Resolving any ongoing story threads
+- Building toward a satisfying conclusion
+- Avoid introducing new major characters or locations
+- Choices should lead toward natural endings
+""",
+            'ending': """
+STORY PHASE: ENDING (Final Scene)
+This is the final turn - provide a complete, satisfying ending.
+See the detailed ending instructions in the main prompt.
+"""
+        }
+        return guidance.get(phase, guidance['adventure'])
 
     @staticmethod
     def get_story_continuation_prompt(
@@ -15,21 +125,34 @@ class StoryPrompts:
         story_summary: str,
         player_choice: str,
         player_name: str = "the player",
-        turns_remaining: int | None = None
+        turns_remaining: int | None = None,
+        current_turn: int = 1,
+        max_turns: int = 10
     ) -> str:
         """
         Generate a prompt for continuing the story.
         Phase 6: Enhanced with stronger safety instructions.
+        Optimizations 9.2 & 9.3: Dynamic prompt adaptation and emotional arc guidance.
 
         Args:
             age_range: Target age range (e.g., "6-8", "9-12")
             story_summary: Summary of the story so far
             player_choice: The action the player chose to take
             player_name: The player's name (default: "the player")
+            turns_remaining: Number of turns remaining (deprecated, use current_turn/max_turns)
+            current_turn: Current turn number (1-indexed)
+            max_turns: Maximum turns in the story
 
         Returns:
             Formatted prompt string
         """
+        # Optimization 9.2: Determine story phase
+        phase = StoryPrompts.get_prompt_phase(current_turn, max_turns)
+        phase_guidance = StoryPrompts.get_phase_guidance(phase)
+
+        # Optimization 9.3: Get emotional tone for this turn
+        emotional_tone = get_emotional_tone(current_turn, max_turns)
+
         wrap_guidance = ""
         is_final_turn = False
         if turns_remaining is not None:
@@ -132,6 +255,12 @@ STORY SO FAR:
 THE PLAYER JUST CHOSE THIS ACTION:
 "{player_choice}"
 
+{phase_guidance}
+
+EMOTIONAL TONE FOR THIS SCENE:
+The emotional tone for this turn should be: {emotional_tone}
+Guide the narrative to reflect this emotional quality while maintaining a positive, age-appropriate atmosphere.
+
 CRITICAL INSTRUCTION - STORY CONTINUITY:
 You MUST continue the story directly based on the player's chosen action above. The next scene MUST show what happens as a direct result of "{player_choice}". Do NOT ignore this choice or take the story in a different direction. The player's choice is the foundation for what happens next.
 
@@ -193,6 +322,7 @@ Respond in this JSON format:
     ) -> str:
         """
         Generate a prompt for starting a new story.
+        Optimization 9.3: Enhanced with emotional arc guidance for opening.
 
         Args:
             player_name: The player's name
@@ -206,9 +336,16 @@ Respond in this JSON format:
         # Replace underscores with spaces and capitalize words
         theme_readable = theme.replace("_", " ").title()
 
+        # Optimization 9.3: Opening scene should be "curious and inviting"
+        opening_tone = EMOTIONAL_ARC[1]
+
         return f"""You are a creative, kid-friendly storyteller for children aged {age_range}.
 
 Create the opening scene for a brand new story about {player_name}, who is about to begin an exciting {theme_readable} adventure.
+
+EMOTIONAL TONE FOR THIS OPENING:
+The emotional tone should be: {opening_tone}
+Create a welcoming, intriguing atmosphere that invites the player into this new world.
 
 CRITICAL SAFETY RULES (MUST FOLLOW):
 1. ABSOLUTELY NO: violence, weapons, fighting, death, blood, injuries, pain, or hurt
