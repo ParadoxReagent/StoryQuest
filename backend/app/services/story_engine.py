@@ -231,7 +231,8 @@ class StoryEngine:
             player_name=db_session_model.player_name,
             turns_remaining=turns_remaining,
             current_turn=current_turn,
-            max_turns=max_turns
+            max_turns=max_turns,
+            theme=db_session_model.theme
         )
         system_message = self.prompts.get_system_message(db_session_model.age_range)
 

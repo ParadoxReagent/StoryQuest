@@ -127,7 +127,8 @@ See the detailed ending instructions in the main prompt.
         player_name: str = "the player",
         turns_remaining: int | None = None,
         current_turn: int = 1,
-        max_turns: int = 10
+        max_turns: int = 10,
+        theme: str | None = None
     ) -> str:
         """
         Generate a prompt for continuing the story.
@@ -142,6 +143,7 @@ See the detailed ending instructions in the main prompt.
             turns_remaining: Number of turns remaining (deprecated, use current_turn/max_turns)
             current_turn: Current turn number (1-indexed)
             max_turns: Maximum turns in the story
+            theme: Story theme (e.g., "space_adventure", "pirate_adventure")
 
         Returns:
             Formatted prompt string
@@ -247,8 +249,18 @@ Respond in this JSON format (NO choices field):
                     "Avoid introducing new characters or locations; focus on resolving what already exists and setting up the finale."
                 )
 
-        return f"""You are a creative, kid-friendly storyteller for children aged {age_range}.
+        # Convert theme to readable format if provided
+        theme_text = ""
+        if theme:
+            theme_readable = theme.replace("_", " ").title()
+            theme_text = f"""
+STORY THEME:
+This is a {theme_readable} adventure. ALL scenes must relate to and stay within this theme.
+Keep the story focused on {theme_readable} elements throughout.
+"""
 
+        return f"""You are a creative, kid-friendly storyteller for children aged {age_range}.
+{theme_text}
 STORY SO FAR:
 {story_summary}
 
