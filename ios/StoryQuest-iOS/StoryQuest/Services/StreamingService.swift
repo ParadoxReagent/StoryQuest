@@ -15,6 +15,8 @@ class StreamingService: ObservableObject {
 
     private let baseURL: String
     private var streamTask: URLSessionDataTask?
+    private var streamingSession: URLSession?
+    private var sseDelegate: SSEDelegate?
     private var buffer: String = ""
 
     init(baseURL: String = "http://localhost:8000") {
@@ -68,7 +70,8 @@ class StreamingService: ObservableObject {
             return
         }
 
-        let session = URLSession.shared
+        streamingSession?.invalidateAndCancel()
+
         let delegate = SSEDelegate(
             onData: { [weak self] data in
                 Task { @MainActor in
@@ -90,7 +93,14 @@ class StreamingService: ObservableObject {
             }
         )
 
-        streamTask = session.dataTask(with: urlRequest)
+        sseDelegate = delegate
+        streamingSession = URLSession(
+            configuration: .default,
+            delegate: delegate,
+            delegateQueue: nil
+        )
+
+        streamTask = streamingSession?.dataTask(with: urlRequest)
         streamTask?.resume()
     }
 
@@ -176,6 +186,9 @@ class StreamingService: ObservableObject {
 
     func cancelStream() {
         streamTask?.cancel()
+        streamingSession?.invalidateAndCancel()
+        streamingSession = nil
+        sseDelegate = nil
         isStreaming = false
         streamingText = ""
         buffer = ""

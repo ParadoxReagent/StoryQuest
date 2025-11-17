@@ -18,7 +18,7 @@ class StoryViewModel: ObservableObject {
 
     // Services
     private let apiService: APIService
-    private let streamingService: StreamingService
+    let streamingService: StreamingService
     private let storageService: StorageService
     let rateLimitTracker = RateLimitTracker()
 
