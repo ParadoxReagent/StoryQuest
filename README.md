@@ -1,488 +1,684 @@
-# StoryQuest
+# 🎭 StoryQuest
 
-A kid-friendly, interactive text adventure game powered by Large Language Models (LLMs).
+**An AI-powered interactive storytelling adventure for kids**
 
-## Overview
+StoryQuest is a safe, creative, and educational storytelling platform where children aged 6-12 become the heroes of their own AI-generated adventures. Choose from magical themes, make decisions that shape the story, and watch your imagination come to life through the power of Large Language Models.
 
-StoryQuest is an LLM-powered text adventure game designed for children aged 6-12. Kids can read or listen to engaging story scenes and either choose from suggested actions or enter their own creative responses. The story continues in a safe, whimsical, and age-appropriate way.
+---
 
-## Key Features
+## ✨ Features
 
-- **Flexible LLM Support**: Works with local LLMs (Ollama) or cloud LLMs (OpenAI, Anthropic, Gemini, OpenRouter)
-- **Multi-Platform**: Designed for both Web UI and iPad app
-- **Safe & Kid-Friendly**: Built-in safety filters and age-appropriate content
-- **Interactive Storytelling**: Choose from suggestions or create your own responses
-- **Multiple Themes**: Space adventures, magical forests, underwater quests, and more
-- **Extensible**: Easy to add TTS, achievements, and image generation
+### 🎨 **Multi-Platform Experience**
+- **Web Application**: Full-featured React web app with responsive design
+- **iOS/iPadOS App**: Native SwiftUI app optimized for iPad with text-to-speech
+- **Cross-Platform**: Same backend powers all platforms seamlessly
 
-## Architecture
+### 🤖 **Flexible AI Integration**
+- **Local LLMs**: Run completely offline with Ollama (privacy-first)
+- **Cloud LLMs**: OpenAI GPT-4o-mini, Anthropic Claude, Google Gemini, OpenRouter
+- **Smart Fallbacks**: Automatic retry logic and graceful degradation
+- **Streaming Responses**: Real-time story generation for engaging experiences
 
-The project is organized into phases:
+### 🛡️ **Advanced Safety System**
+- **Multi-Layer Content Filtering**: Comprehensive banned word list and sentiment analysis
+- **Age-Appropriate Content**: Separate modes for ages 6-8 and 9-12
+- **Rate Limiting**: Prevents abuse with session, IP, and custom input limits
+- **Moderation API**: Optional OpenAI Moderation API integration
+- **Violation Tracking**: Admin dashboard for monitoring and compliance
+- **G-Rated Only**: All content is positive, encouraging, and educational
 
-1. **Phase 1**: Story format & API contract ✅
-2. **Phase 2**: LLM abstraction layer ✅
-3. **Phase 3**: Core story engine ✅
-4. **Phase 4**: Web UI (MVP) ✅
-5. **Phase 5**: iPad app
-6. **Phase 6**: Enhanced Safety & Guardrails ✅
-7. **Phase 7**: Enhancements (TTS, images, achievements)
-8. **Phase 8**: Testing & polish
+### 📚 **Rich Story Experience**
+- **7 Unique Themes**: Space adventures, magical forests, underwater quests, medieval castles, dinosaur lands, superhero cities, and Arctic explorations
+- **Dynamic Choices**: Select from AI-generated options or write your own creative responses
+- **Story History**: Review your adventure journey from beginning to end
+- **Progress Tracking**: Visual indicators for story completion and turns
+- **Text-to-Speech**: Read-aloud mode on iOS for younger children (Phase 5)
 
-## Project Structure
+### 🚀 **Production-Ready**
+- **Docker Deployment**: Complete containerized setup with docker-compose
+- **Database Persistence**: SQLite for development, PostgreSQL-ready for production
+- **Health Monitoring**: Built-in health checks and detailed system status endpoints
+- **Admin Dashboard**: Real-time monitoring of safety violations, rate limits, and system health
+- **Hot Reload**: Development mode with automatic code reloading
+
+---
+
+## 🏗️ Architecture
+
+StoryQuest is built with a modern, scalable architecture:
 
 ```
-StoryQuest/
-├── backend/                  # FastAPI backend ✅
-│   ├── app/
-│   │   ├── models/          # Pydantic data models
-│   │   ├── services/        # LLM providers, story engine, safety filter
-│   │   ├── api/             # API endpoints
-│   │   ├── db/              # Database models & connection
-│   │   └── main.py          # Application entry point
-│   ├── scripts/             # Database initialization
-│   ├── tests/               # Backend tests
-│   ├── config.yaml          # Configuration
-│   ├── requirements.txt     # Python dependencies
-│   ├── Dockerfile           # Backend Docker image
-│   └── .dockerignore        # Docker ignore patterns
-├── frontend/                # React Web UI ✅
-│   ├── src/
-│   │   ├── components/      # React components
-│   │   ├── services/        # API client
-│   │   ├── types/           # TypeScript definitions
-│   │   └── App.tsx          # Main app component
-│   ├── package.json         # Dependencies
-│   ├── vite.config.ts       # Vite configuration
-│   ├── nginx.conf           # Nginx configuration for production
-│   ├── Dockerfile           # Frontend Docker image (multi-stage)
-│   └── .dockerignore        # Docker ignore patterns
-├── ios/                     # iPad app (Phase 5 - planned)
-│   ├── README.md            # iOS development guide
-│   ├── IOS_APP_PLAN.md      # Complete implementation plan (in root)
-│   └── Examples/            # Reference Swift code
-│       ├── Models.swift     # Data models example
-│       └── ThemeSelectionView.swift  # UI example
-├── docker-compose.yml       # Docker orchestration (production)
-├── docker-compose.dev.yml   # Docker development overrides
-├── .env.example             # Environment variables template
-├── .gitignore               # Git ignore patterns
-├── GETTING_STARTED.md       # ⭐ Quick start guide (read this first!)
-├── DOCKER.md                # Complete Docker guide
-├── DOCKER_QUICK_REFERENCE.md # Docker commands cheat sheet
-├── IOS_APP_PLAN.md          # Complete iOS app implementation plan
-└── StoryQuest_Plan.md      # Detailed implementation plan
-```
-
-## Quick Start
-
-> **💡 Recommended**: Use Docker for the easiest setup and deployment. All instructions below assume Docker usage.
-
-### 🐳 Docker Setup (Primary Method)
-
-StoryQuest is designed to run with Docker. This provides:
-- ✅ Consistent environment across all platforms
-- ✅ Automatic dependency management
-- ✅ Easy deployment and scaling
-- ✅ No manual Python/Node.js setup required
-
-**Prerequisites:**
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed
-- (Optional) [Ollama](https://ollama.ai) for local LLM
-
-**Steps:**
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd StoryQuest
-```
-
-2. (Optional) Configure environment variables:
-```bash
-cp .env.example .env
-# Edit .env if using cloud LLMs (OpenAI/Anthropic/Gemini/OpenRouter)
-```
-
-3. Start the application:
-```bash
-docker-compose up -d
-```
-
-4. Access the application:
-   - **Frontend**: http://localhost:3000
-   - **Backend API**: http://localhost:8000
-   - **API Docs**: http://localhost:8000/docs
-   - **Health Check**: http://localhost:8000/health
-
-5. View logs:
-```bash
-docker-compose logs -f
-```
-
-6. Stop the application:
-```bash
-docker-compose down
-```
-
-**Using with Ollama (Local LLM):**
-
-If using Ollama running on your host machine, the default configuration will work automatically. The backend connects to `http://host.docker.internal:11434`.
-
-**Using with Cloud LLMs:**
-
-Edit `.env` file:
-```bash
-# For OpenAI
-LLM_PROVIDER=openai
-OPENAI_API_KEY=sk-your-key-here
-
-# For Anthropic
-LLM_PROVIDER=anthropic
-ANTHROPIC_API_KEY=sk-ant-your-key-here
-```
-
-Then restart:
-```bash
-docker-compose down
-docker-compose up -d
+┌─────────────────────────────────────────────────────────┐
+│                   Frontend Clients                       │
+│  ┌──────────────────┐      ┌──────────────────┐        │
+│  │   React Web UI   │      │  SwiftUI iOS App │        │
+│  │  (Vite + Tailwind) │    │  (iPad Optimized) │        │
+│  └──────────────────┘      └──────────────────┘        │
+└───────────────┬─────────────────────┬───────────────────┘
+                │                     │
+                └──────────┬──────────┘
+                           │
+                ┌──────────▼──────────┐
+                │   FastAPI Backend   │
+                │  ┌──────────────┐   │
+                │  │ Story Engine │   │
+                │  └──────┬───────┘   │
+                │         │           │
+                │  ┌──────▼───────┐   │
+                │  │ Safety Filter│   │
+                │  └──────┬───────┘   │
+                │         │           │
+                │  ┌──────▼───────┐   │
+                │  │ LLM Providers│   │
+                │  └──────────────┘   │
+                └──────────┬──────────┘
+                           │
+        ┌──────────────────┼──────────────────┐
+        │                  │                  │
+   ┌────▼────┐      ┌──────▼──────┐    ┌─────▼─────┐
+   │ Ollama  │      │   OpenAI    │    │ Anthropic │
+   │ (Local) │      │  (Cloud)    │    │  (Cloud)  │
+   └─────────┘      └─────────────┘    └───────────┘
 ```
 
 ---
 
-### 📦 Manual Installation (Advanced)
+## 📦 Tech Stack
 
-> **⚠️ Note**: Manual installation is only recommended for development or if you cannot use Docker. For production and easiest setup, use Docker (see above).
+### Backend
+- **Framework**: FastAPI (Python 3.11+)
+- **ORM**: SQLAlchemy with async support
+- **Validation**: Pydantic v2
+- **HTTP Client**: httpx (async)
+- **Database**: SQLite (dev) / PostgreSQL (prod)
+- **Safety**: Custom content filter + OpenAI Moderation API
+
+### Frontend (Web)
+- **Framework**: React 18 + TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS
+- **HTTP Client**: Axios
+- **State Management**: React Query (@tanstack/react-query)
+- **Animations**: Framer Motion
+- **Notifications**: Sonner
+- **Testing**: Vitest + React Testing Library
+
+### Frontend (iOS)
+- **Language**: Swift 5.9+
+- **UI Framework**: SwiftUI
+- **Reactive Programming**: Combine
+- **Local Storage**: Core Data
+- **Text-to-Speech**: AVFoundation
+- **Networking**: URLSession
+- **Architecture**: MVVM pattern
+
+### DevOps
+- **Containerization**: Docker + Docker Compose
+- **Web Server**: Nginx (production frontend)
+- **CI/CD**: GitHub Actions (planned)
+- **Monitoring**: Health checks, admin dashboard
+
+### AI/LLM Providers
+- **Local**: Ollama (llama3.2, qwen2.5, gemma2, etc.)
+- **Cloud**: OpenAI, Anthropic Claude, Google Gemini, OpenRouter
+
+---
+
+## 🚀 Quick Start
+
+### Using Docker (Recommended)
+
+The fastest way to run StoryQuest is with Docker:
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd StoryQuest
+
+# (Optional) Configure environment for cloud LLMs
+cp .env.example .env
+# Edit .env to add API keys if not using Ollama
+
+# Start all services
+docker-compose up -d
+
+# Access the application
+# Web UI: http://localhost:3000
+# API: http://localhost:8000
+# API Docs: http://localhost:8000/docs
+```
+
+**That's it!** The web app is now running and ready to use.
+
+#### Using with Ollama (Local LLM)
+
+If you have Ollama installed locally, the default configuration will work automatically:
+
+```bash
+# Pull a model (first time only)
+ollama pull llama3.2:3b
+
+# Start StoryQuest
+docker-compose up -d
+```
+
+The backend automatically connects to Ollama at `http://host.docker.internal:11434`.
+
+#### Using with Cloud LLMs
+
+Edit your `.env` file:
+
+```bash
+# For OpenAI
+LLM_PROVIDER=openai
+OPENAI_API_KEY=sk-your-key-here
+MODEL_NAME=gpt-4o-mini
+
+# For Anthropic
+LLM_PROVIDER=anthropic
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+MODEL_NAME=claude-3-haiku-20240307
+```
+
+Then restart:
+
+```bash
+docker-compose down
+docker-compose up -d
+```
+
+### Manual Installation (Development)
 
 <details>
 <summary>Click to expand manual installation instructions</summary>
 
-**Prerequisites:**
+#### Prerequisites
 - Python 3.11+
 - Node.js 18+
 - (Optional) Ollama for local LLM
 
-#### 1. Backend Setup
-
-See [backend/README.md](backend/README.md) for detailed instructions.
+#### Backend Setup
 
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env
-# Edit .env if using cloud LLMs
 
-# Initialize the database
+# Configure environment
+cp .env.example .env
+# Edit .env as needed
+
+# Initialize database
 python scripts/init_db.py
 
-# Start the backend server
-python -m uvicorn app.main:app --reload
+# Start backend
+uvicorn app.main:app --reload
 ```
 
-The API will be available at http://localhost:8000
-- API docs: http://localhost:8000/docs
-- Health check: http://localhost:8000/health
+Backend runs at http://localhost:8000
 
-### 2. Frontend Setup
-
-See [frontend/README.md](frontend/README.md) for detailed instructions.
+#### Frontend Setup
 
 ```bash
 cd frontend
 npm install
-
-# Start the development server
 npm run dev
 ```
 
-The web app will be available at http://localhost:3000
+Frontend runs at http://localhost:3000
 
-#### Using Local LLM (Ollama)
+#### iOS App Setup
 
-1. Install Ollama: https://ollama.ai
-2. Pull a model: `ollama pull llama3.2:3b`
-3. Ollama will be accessible from the backend automatically
-
-#### Using Cloud LLMs
-
-Set your API key in `.env`:
-```bash
-LLM_PROVIDER=openai
-OPENAI_API_KEY=sk-...
-```
-
-Or for Anthropic:
-```bash
-LLM_PROVIDER=anthropic
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-Or for Gemini:
-```bash
-LLM_PROVIDER=gemini
-GEMINI_API_KEY=ai-...
-```
-
-Or for OpenRouter:
-```bash
-LLM_PROVIDER=openrouter
-OPENROUTER_API_KEY=or-...
-```
+See [ios/README.md](ios/README.md) for complete Xcode setup instructions.
 
 </details>
 
 ---
 
-## Implementation Progress
+## 📖 How to Use
 
-### ✅ Completed (Phases 1-4, 6)
+### Web Application
 
-**Phase 1: Story Format & API Contract**
-- Story data models (Pydantic)
-- API endpoint definitions
-- LLM prompt templates
+1. **Start StoryQuest**: Navigate to http://localhost:3000
+2. **Enter Your Name**: Tell us what to call you
+3. **Choose Age Range**: Select 6-8 or 9-12 for age-appropriate content
+4. **Pick a Theme**: Choose from 7 exciting adventure themes
+5. **Start Your Adventure**: Click "Start My Adventure!" to begin
+6. **Make Choices**:
+   - Click suggested choices for quick decisions
+   - Or type your own creative responses
+7. **Watch the Story Unfold**: See how your choices shape the adventure
+8. **View History**: Click "Story So Far" to review previous turns
+9. **Start Over**: Click "New Story" anytime to begin fresh
 
-**Phase 2: LLM Abstraction Layer**
-- Abstract LLM provider interface
-- Ollama provider (local LLM)
-- OpenAI provider (GPT-4o-mini)
-- Anthropic provider (Claude)
-- Gemini provider (Gemini 1.5 Flash)
-- OpenRouter provider (multi-model aggregator)
-- Configuration system with YAML support
-- Factory pattern for LLM providers
+### iOS/iPadOS App
 
-**Phase 3: Core Story Engine**
-- SQLAlchemy database models
-- Database connection and session management
-- Story Engine with LLM orchestration
-- Basic Safety Filter for content moderation
-- Fully functional API endpoints
-- Error handling, retry logic, and fallback responses
-- Database initialization script
-- Session tracking and story history
+1. **Open StoryQuest** on your iPad
+2. **Configure API URL**: First launch will prompt for backend URL
+3. **Select Theme**: Browse beautiful theme cards
+4. **Begin Story**: Tap to start your adventure
+5. **Listen or Read**: Toggle text-to-speech for read-aloud mode
+6. **Make Choices**: Tap choices or use custom input
+7. **Track Progress**: See your story progress visually
+8. **Review History**: Access your story history anytime
 
-**Phase 4: Web UI (MVP)**
-- React + TypeScript + Vite setup
-- Tailwind CSS styling
-- Theme selection screen
-- Interactive story view
-- Choice buttons and custom input
-- Story history viewer
-- Loading states and error handling
-- Responsive, kid-friendly design
-- Accessibility features (ARIA labels, keyboard navigation)
+---
 
-**Phase 6: Enhanced Safety & Guardrails**
-- Comprehensive enhanced safety filter (100+ banned words)
-- Sentiment analysis for content validation (positive/negative scoring)
-- Age-appropriate content filtering (6-8 vs 9-12)
-- Optional OpenAI Moderation API integration
-- Multi-layer rate limiting:
-  - Session limits (20 turns/hour, 100/day)
-  - Custom input limits (5 per 10 minutes)
-  - IP limits (50/hour, 200/day)
-  - Start story limits (10/hour per IP)
-- Violation tracking and logging system
-- Admin endpoints for monitoring:
+## 📂 Project Structure
+
+```
+StoryQuest/
+├── backend/                    # FastAPI Backend ✅
+│   ├── app/
+│   │   ├── api/v1/            # REST API endpoints
+│   │   │   ├── story.py       # Story endpoints (start, continue, history)
+│   │   │   └── admin.py       # Admin monitoring endpoints
+│   │   ├── models/            # Pydantic data models
+│   │   │   ├── story.py       # Story, scene, choice models
+│   │   │   └── requests.py    # API request/response models
+│   │   ├── services/          # Business logic
+│   │   │   ├── llm/           # LLM provider implementations
+│   │   │   │   ├── base.py    # Abstract base class
+│   │   │   │   ├── ollama.py  # Ollama provider
+│   │   │   │   ├── openai.py  # OpenAI provider
+│   │   │   │   ├── anthropic.py # Anthropic provider
+│   │   │   │   └── gemini.py  # Google Gemini provider
+│   │   │   ├── story_engine.py    # Core story generation logic
+│   │   │   ├── safety_filter.py   # Content moderation
+│   │   │   └── rate_limiter.py    # Rate limiting service
+│   │   ├── db/                # Database layer
+│   │   │   ├── database.py    # Connection and session management
+│   │   │   └── models.py      # SQLAlchemy ORM models
+│   │   ├── config.py          # Configuration management
+│   │   └── main.py            # FastAPI application entry point
+│   ├── scripts/               # Utility scripts
+│   │   └── init_db.py         # Database initialization
+│   ├── tests/                 # Backend tests
+│   ├── requirements.txt       # Python dependencies
+│   ├── Dockerfile             # Backend container image
+│   └── README.md              # Backend documentation
+│
+├── frontend/                   # React Web UI ✅
+│   ├── src/
+│   │   ├── components/        # React components
+│   │   │   ├── ThemeSelection.tsx   # Theme picker screen
+│   │   │   ├── StoryView.tsx        # Main story interface
+│   │   │   ├── ChoiceButtons.tsx    # Choice selection UI
+│   │   │   ├── CustomInput.tsx      # Custom text input
+│   │   │   └── StoryHistory.tsx     # History viewer
+│   │   ├── services/          # API integration
+│   │   │   └── api.ts         # Axios API client
+│   │   ├── types/             # TypeScript definitions
+│   │   │   └── story.ts       # Story type definitions
+│   │   ├── App.tsx            # Main application component
+│   │   └── main.tsx           # Application entry point
+│   ├── public/                # Static assets
+│   ├── package.json           # NPM dependencies
+│   ├── vite.config.ts         # Vite configuration
+│   ├── tailwind.config.js     # Tailwind CSS configuration
+│   ├── nginx.conf             # Production nginx config
+│   ├── Dockerfile             # Frontend container image
+│   └── README.md              # Frontend documentation
+│
+├── ios/                        # iOS/iPadOS App ✅
+│   ├── StoryQuest-iOS/
+│   │   └── StoryQuest/
+│   │       ├── App/           # App entry point
+│   │       │   ├── StoryQuestApp.swift      # Main app
+│   │       │   └── AppEnvironment.swift     # App-wide state
+│   │       ├── Models/        # Data models
+│   │       │   ├── Story.swift              # Story models
+│   │       │   ├── Theme.swift              # Theme definitions
+│   │       │   ├── StreamEvent.swift        # Streaming models
+│   │       │   └── SessionHistory.swift     # History models
+│   │       ├── Services/      # Business logic
+│   │       │   ├── APIService.swift         # Backend API client
+│   │       │   ├── StreamingService.swift   # Real-time streaming
+│   │       │   ├── StorageService.swift     # Core Data persistence
+│   │       │   └── TTSService.swift         # Text-to-speech
+│   │       ├── ViewModels/    # MVVM view models
+│   │       │   ├── ThemeViewModel.swift     # Theme selection logic
+│   │       │   ├── StoryViewModel.swift     # Story state management
+│   │       │   └── HistoryViewModel.swift   # History logic
+│   │       ├── Views/         # SwiftUI views
+│   │       │   ├── Theme/     # Theme selection screens
+│   │       │   ├── Story/     # Story gameplay screens
+│   │       │   └── Shared/    # Reusable components
+│   │       └── Utilities/     # Helper code
+│   │           ├── Constants.swift          # App constants
+│   │           ├── Extensions.swift         # Swift extensions
+│   │           └── RateLimitTracker.swift   # Client-side rate limiting
+│   ├── Examples/              # Reference implementations
+│   └── README.md              # iOS development guide
+│
+├── docker-compose.yml         # Production Docker setup ✅
+├── docker-compose.dev.yml     # Development overrides ✅
+├── .env.example               # Environment template ✅
+├── .gitignore                 # Git ignore patterns ✅
+│
+├── GETTING_STARTED.md         # ⭐ Quick start guide
+├── DOCKER.md                  # Complete Docker guide
+├── DOCKER_QUICK_REFERENCE.md  # Docker cheat sheet
+├── StoryQuest_Plan.md         # Implementation roadmap
+└── README.md                  # This file
+```
+
+---
+
+## 🛡️ Safety & Content Moderation
+
+StoryQuest prioritizes child safety with multiple layers of protection:
+
+### Content Filtering
+- **100+ Banned Words**: Comprehensive blocklist for inappropriate content
+- **Sentiment Analysis**: Real-time scoring to ensure positive, encouraging content
+- **Age-Appropriate Modes**: Separate content filtering for ages 6-8 vs 9-12
+- **LLM Prompt Engineering**: System prompts enforce G-rated, educational content
+- **OpenAI Moderation API**: Optional additional layer for cloud deployments
+
+### Rate Limiting
+- **Session Limits**: 20 turns per hour, 100 turns per day per session
+- **Custom Input Limits**: 5 custom responses per 10 minutes
+- **IP-Based Limits**: 50 requests per hour, 200 per day per IP
+- **Story Start Limits**: 10 new stories per hour per IP
+- **Graceful Handling**: Clear error messages and retry guidance
+
+### Monitoring & Administration
+- **Violation Tracking**: All safety filter violations are logged with context
+- **Admin Dashboard**: Real-time monitoring at `/api/v1/admin/`
   - View safety violations
-  - Rate limiter statistics
-  - System health checks
-  - Configuration review
-- Enhanced LLM prompts with explicit safety rules
-- Fallback responses for rejected content
+  - Check rate limiter statistics
+  - Review system health
+  - Monitor configuration
+- **Detailed Logging**: Comprehensive logs for debugging and compliance
 
-### 📋 Planned
+### Safety Guarantees
+✅ G-rated content only
+✅ No violence, scary themes, or adult content
+✅ Positive, encouraging, educational language
+✅ Focus on curiosity, problem-solving, and kindness
+✅ Input validation and sanitization
+✅ Automatic fallback for rejected content
 
-**Phase 5: iPad App (SwiftUI)** - Designed, ready for implementation
-- Native iOS/iPadOS app with SwiftUI
-- Text-to-speech for read-aloud mode
-- Offline story viewing and export
-- Touch-optimized UI for kids
-- Complete implementation plan available
-- See [IOS_APP_PLAN.md](IOS_APP_PLAN.md) for details
+---
 
-**Future Phases:**
-- Phase 7: TTS, image generation, achievements
-- Phase 8: Comprehensive testing & production deployment
-
-## Technology Stack
-
-**Backend:**
-- FastAPI (Python web framework)
-- Pydantic (data validation)
-- SQLAlchemy (ORM)
-- httpx (async HTTP client)
-- SQLite / PostgreSQL (database)
-
-**LLM Support:**
-- Ollama (local LLM)
-- OpenAI GPT-4o-mini (cloud)
-- Anthropic Claude (cloud)
-
-**Frontend:**
-- React 18 + TypeScript
-- Vite (build tool)
-- Tailwind CSS (styling)
-- Axios (HTTP client)
-- Nginx (production server)
-
-**DevOps:**
-- Docker & Docker Compose
-- Multi-stage builds
-- Health checks and auto-restart
-
-**iOS/iPadOS App (Phase 5 - designed):**
-- Swift 5.9+ & SwiftUI
-- Combine (reactive programming)
-- Core Data (local storage)
-- AVFoundation (text-to-speech)
-- URLSession (API integration)
-- Native iPad-optimized interface
-
-## Safety & Content Moderation
-
-StoryQuest prioritizes child safety:
-- G-rated content only (no violence, scary themes, or adult content)
-- Multi-layer content filtering
-- Input validation and sanitization
-- Positive, encouraging language
-- Educational focus (curiosity, problem-solving, kindness)
-
-## Documentation
+## 📚 Documentation
 
 ### Getting Started
+- **[Getting Started Guide](GETTING_STARTED.md)** - ⭐ Start here! Comprehensive setup guide
+- **[Quick Start](QUICKSTART.md)** - 5-minute quick start
 
-- **[GETTING_STARTED.md](GETTING_STARTED.md)** - ⭐ Start here! Quick setup guide
+### Deployment
+- **[Docker Guide](DOCKER.md)** - Complete Docker setup and deployment
+- **[Docker Quick Reference](DOCKER_QUICK_REFERENCE.md)** - Common Docker commands
 
-### Docker & Deployment
-
-- [Docker Guide](DOCKER.md) - Complete Docker setup and deployment guide
-- [Docker Quick Reference](DOCKER_QUICK_REFERENCE.md) - Command cheat sheet
-
-### Development Guides
-
-- [Backend README](backend/README.md) - Backend setup and API documentation
-- [Frontend README](frontend/README.md) - Frontend setup and development guide
-- [iOS README](ios/README.md) - iOS app development guide
-- [Safety Guide](backend/SAFETY.md) - Safety features and content moderation
+### Development
+- **[Backend README](backend/README.md)** - Backend API documentation
+- **[Frontend README](frontend/README.md)** - Frontend development guide
+- **[iOS README](ios/README.md)** - iOS app development guide
+- **[Safety Documentation](backend/SAFETY.md)** - Safety features and moderation
 
 ### Planning & Architecture
+- **[Implementation Plan](StoryQuest_Plan.md)** - Complete implementation roadmap
+- **[Optimization Plan](OPTIMIZATION_PLAN.md)** - Performance optimization strategy
 
-- [iOS App Plan](IOS_APP_PLAN.md) - Complete iOS/iPadOS implementation plan
-- [Detailed Plan](StoryQuest_Plan.md) - Complete implementation roadmap
+### API Documentation (Live)
+When the backend is running, access interactive API documentation:
+- **[Swagger UI](http://localhost:8000/docs)** - Interactive API explorer
+- **[ReDoc](http://localhost:8000/redoc)** - Alternative API documentation
+- **[Health Check](http://localhost:8000/health)** - Backend health status
+- **[Admin Dashboard](http://localhost:8000/api/v1/admin/health/detailed)** - Detailed system monitoring
 
-### API Documentation (when running)
+---
 
-- [Interactive API Docs](http://localhost:8000/docs) - Swagger UI
-- [Alternative Docs](http://localhost:8000/redoc) - ReDoc UI
-- [Health Check](http://localhost:8000/health) - Backend health status
-- [Admin Panel](http://localhost:8000/api/v1/admin/health/detailed) - Detailed system status
-
-## Development
+## 🔧 Development
 
 ### Docker Development Workflow
 
-**Start services in development mode:**
+Start services in development mode with hot reload:
+
 ```bash
-# Backend with hot-reload
+# Start all services with development overrides
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
 # View logs
 docker-compose logs -f backend
+docker-compose logs -f frontend
+
+# Execute commands in containers
+docker-compose exec backend pytest                # Run tests
+docker-compose exec backend python scripts/init_db.py  # Reset database
+docker-compose exec frontend npm run test         # Frontend tests
+
+# Access container shells
+docker-compose exec backend /bin/bash
+docker-compose exec frontend /bin/sh
+
+# Rebuild after dependency changes
+docker-compose build backend
+docker-compose up -d backend
 ```
 
-**Run commands inside containers:**
+### Running Tests
+
 ```bash
 # Backend tests
-docker-compose exec backend pytest
+cd backend
+pytest                          # All tests
+pytest tests/test_story.py     # Specific test file
+pytest -v                      # Verbose output
+pytest --cov=app               # Coverage report
 
-# Backend shell
-docker-compose exec backend /bin/bash
-
-# Frontend shell
-docker-compose exec frontend /bin/sh
+# Frontend tests
+cd frontend
+npm run test                   # Run tests
+npm run test:ui                # Interactive test UI
+npm run test:coverage          # Coverage report
 ```
 
-### Code Quality (Manual Setup Only)
-
-If running without Docker:
+### Code Quality (Manual Setup)
 
 ```bash
-# Format code
-black backend/app
-isort backend/app
+# Backend
+cd backend
+black app/                     # Format code
+isort app/                     # Sort imports
+mypy app/                      # Type checking
+flake8 app/                    # Linting
 
-# Type checking
-mypy backend/app
-
-# Linting
-flake8 backend/app
+# Frontend
+cd frontend
+npm run lint                   # ESLint
+npm run lint -- --fix          # Auto-fix issues
 ```
 
-For Docker-based development, see [DOCKER.md](DOCKER.md) for complete development workflows.
+---
 
-## Contributing
+## 🎯 Implementation Status
 
-This is a personal/educational project. Contributions, suggestions, and feedback are welcome!
+### ✅ Completed Phases
 
-## License
+#### Phase 1: Story Format & API Contract
+- ✅ Pydantic data models for stories, scenes, and choices
+- ✅ REST API endpoint definitions
+- ✅ LLM prompt templates with safety guidelines
 
-TBD
+#### Phase 2: LLM Abstraction Layer
+- ✅ Abstract provider interface for extensibility
+- ✅ Ollama provider (local LLM support)
+- ✅ OpenAI provider (GPT-4o-mini, GPT-3.5-turbo)
+- ✅ Anthropic provider (Claude 3 Haiku, Sonnet)
+- ✅ Google Gemini provider (Gemini 1.5 Flash)
+- ✅ OpenRouter provider (multi-model aggregator)
+- ✅ YAML-based configuration system
+- ✅ Factory pattern for provider selection
+- ✅ Error handling and retry logic
 
-## Roadmap
+#### Phase 3: Core Story Engine
+- ✅ SQLAlchemy database models and migrations
+- ✅ Database connection management (sync & async)
+- ✅ Story Engine with LLM orchestration
+- ✅ Safety Filter with content moderation
+- ✅ Fully functional REST API endpoints
+- ✅ Error handling and fallback responses
+- ✅ Database initialization scripts
+- ✅ Session and story history tracking
 
-- [x] Phase 1: API contract & data models
-- [x] Phase 2: LLM abstraction layer
-- [x] Phase 3: Story engine implementation
-- [x] Phase 4: Web UI MVP
-- [x] Phase 6: Enhanced safety & content moderation
-- [x] Docker deployment setup
-- [ ] Phase 5: iPad app (planned - see [IOS_APP_PLAN.md](IOS_APP_PLAN.md))
-- [ ] Phase 7: TTS, images, achievements
-- [ ] Phase 8: Testing & production deployment
+#### Phase 4: Web UI (React)
+- ✅ React 18 + TypeScript + Vite setup
+- ✅ Tailwind CSS styling system
+- ✅ Theme selection interface
+- ✅ Interactive story view with choices
+- ✅ Custom input for creative responses
+- ✅ Story history viewer
+- ✅ Loading states and error handling
+- ✅ Responsive, kid-friendly design
+- ✅ Accessibility (ARIA labels, keyboard nav)
+- ✅ React Query for state management
+- ✅ Framer Motion animations
+- ✅ Toast notifications
 
-## How to Use
+#### Phase 5: iOS/iPadOS App (SwiftUI)
+- ✅ Complete SwiftUI app architecture
+- ✅ MVVM pattern implementation
+- ✅ Theme selection with beautiful cards
+- ✅ Story gameplay interface
+- ✅ Real-time streaming support
+- ✅ Text-to-speech integration
+- ✅ Core Data persistence
+- ✅ Client-side rate limiting
+- ✅ Error handling and recovery
+- ✅ iPad-optimized layouts
+- ✅ Accessibility support
+- ✅ Offline story viewing
 
-### With Docker (Recommended)
+#### Phase 6: Enhanced Safety & Guardrails
+- ✅ Comprehensive safety filter (100+ banned words)
+- ✅ Sentiment analysis (positive/negative scoring)
+- ✅ Age-appropriate content filtering (6-8 vs 9-12)
+- ✅ OpenAI Moderation API integration (optional)
+- ✅ Multi-layer rate limiting system
+- ✅ Violation tracking and logging
+- ✅ Admin monitoring dashboard
+- ✅ Enhanced LLM safety prompts
+- ✅ Graceful fallback responses
 
-1. **Start the application**:
-   ```bash
-   docker-compose up -d
-   ```
+#### DevOps & Deployment
+- ✅ Complete Docker setup (backend + frontend)
+- ✅ Docker Compose orchestration
+- ✅ Multi-stage builds for optimization
+- ✅ Health checks and auto-restart
+- ✅ Development mode with hot reload
+- ✅ Production-ready Nginx configuration
+- ✅ Environment-based configuration
 
-2. **Open the App**: Navigate to http://localhost:3000 in your browser
+### 📋 Planned Enhancements
 
-3. **Create a Story**:
-   - Enter your name
-   - Choose your age range (6-8 or 9-12)
-   - Select an adventure theme
-   - Click "Start My Adventure!"
+#### Phase 7: Extended Features
+- [ ] Image generation for story scenes (DALL-E, Stable Diffusion)
+- [ ] Achievement system and badges
+- [ ] Story export (PDF, EPUB)
+- [ ] Multi-language support
+- [ ] Parent dashboard and controls
+- [ ] Story sharing (with parental approval)
 
-4. **Play the Story**:
-   - Read the scene text
-   - Either click a suggested choice or type your own idea
-   - Watch the story unfold based on your decisions!
+#### Phase 8: Testing & Polish
+- [ ] Comprehensive end-to-end tests
+- [ ] Load testing and performance optimization
+- [ ] Security audit
+- [ ] User testing with children
+- [ ] Production deployment guide
+- [ ] CI/CD pipeline
 
-5. **View History**: Click "Story So Far" to see all previous turns
+---
 
-6. **Start Over**: Click "New Story" to begin a fresh adventure
+## 🤝 Contributing
 
-7. **Stop the application**:
-   ```bash
-   docker-compose down
-   ```
+StoryQuest is a personal/educational project, but contributions, suggestions, and feedback are welcome!
 
-### Without Docker (Manual Setup)
+### How to Contribute
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Run tests and linting
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
 
-If you're running manually (not recommended for production):
+### Development Guidelines
+- Follow existing code style and conventions
+- Add tests for new features
+- Update documentation as needed
+- Ensure all tests pass before submitting PR
+- Keep commits focused and atomic
 
-1. Start the backend: `cd backend && uvicorn app.main:app --reload`
-2. Start the frontend: `cd frontend && npm run dev`
-3. Open http://localhost:3000
-4. Follow steps 3-6 above
+---
 
-## Contact
+## 📝 License
 
-For questions or feedback, please open an issue on GitHub.
+To be determined. This is currently a personal/educational project.
+
+---
+
+## 🗺️ Roadmap
+
+- [x] **Phase 1**: API contract & data models
+- [x] **Phase 2**: LLM abstraction layer with multiple providers
+- [x] **Phase 3**: Story engine and core backend
+- [x] **Phase 4**: React web UI
+- [x] **Phase 5**: Native iOS/iPadOS app
+- [x] **Phase 6**: Enhanced safety and content moderation
+- [x] **DevOps**: Docker deployment and orchestration
+- [ ] **Phase 7**: Image generation, achievements, and extended features
+- [ ] **Phase 8**: Comprehensive testing and production deployment
+- [ ] **Future**: Mobile apps for Android, story sharing, multiplayer stories
+
+---
+
+## 🌟 Acknowledgments
+
+Built with:
+- [FastAPI](https://fastapi.tiangolo.com/) - Modern Python web framework
+- [React](https://react.dev/) - UI library
+- [SwiftUI](https://developer.apple.com/xwidgets/swiftui/) - iOS UI framework
+- [Ollama](https://ollama.ai/) - Local LLM platform
+- [OpenAI](https://openai.com/) - GPT models
+- [Anthropic](https://www.anthropic.com/) - Claude models
+- [Docker](https://www.docker.com/) - Containerization platform
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+
+---
+
+## 📞 Support
+
+For questions, issues, or feedback:
+- Open an issue on GitHub
+- Check the [documentation](GETTING_STARTED.md)
+- Review the [API docs](http://localhost:8000/docs) when running
+
+---
+
+## ⚡ Performance
+
+StoryQuest is optimized for speed and efficiency:
+- **Docker multi-stage builds**: Minimal production images
+- **React Query caching**: Reduced API calls
+- **Streaming responses**: Real-time story generation
+- **Connection pooling**: Efficient database access
+- **Rate limiting**: Prevents abuse and ensures fair usage
+- **Health monitoring**: Automatic recovery and self-healing
+
+---
+
+**Ready to embark on an adventure?** Get started with [Docker Quick Start](#using-docker-recommended) or explore the [full documentation](GETTING_STARTED.md)!
+
+---
+
+<div align="center">
+
+**[⬆ Back to Top](#-storyquest)**
+
+Made with ❤️ for young storytellers everywhere
+
+</div>
