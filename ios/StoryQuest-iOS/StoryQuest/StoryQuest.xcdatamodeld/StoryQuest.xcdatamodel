@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22225" systemVersion="23A344" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="SavedSession" representedClassName="SavedSession" syncable="YES">
+        <attribute name="ageRange" optional="NO" attributeType="String"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isActive" optional="NO" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isFinished" optional="NO" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="lastActivity" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="maxTurns" optional="NO" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="playerName" optional="NO" attributeType="String"/>
+        <attribute name="theme" optional="NO" attributeType="String"/>
+        <attribute name="totalTurns" optional="NO" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="turns" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="SavedTurn" inverseName="session" inverseEntity="SavedTurn"/>
+    </entity>
+    <entity name="SavedTurn" representedClassName="SavedTurn" syncable="YES">
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="customInput" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="playerChoice" optional="YES" attributeType="String"/>
+        <attribute name="sceneId" optional="NO" attributeType="String"/>
+        <attribute name="sceneText" optional="NO" attributeType="String"/>
+        <attribute name="storySummary" optional="NO" attributeType="String"/>
+        <attribute name="turnNumber" optional="NO" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="session" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="SavedSession" inverseName="turns" inverseEntity="SavedSession"/>
+    </entity>
+</model>
