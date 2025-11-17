@@ -53,21 +53,26 @@ export const StoryView: React.FC<StoryViewProps> = ({
   // Track whether choices should be visible based on streaming progress
   const [showChoices, setShowChoices] = useState(false);
 
-  // Determine when to show choices (halfway through streaming)
+  // Show choices after a 2-second delay from when streaming starts
   useEffect(() => {
-    if (isStreaming && streamingText && story.current_scene.text) {
-      const progress = throttledText.length / story.current_scene.text.length;
-      if (progress >= 0.5) {
+    if (disabled) {
+      // Reset when disabled (new turn starting)
+      setShowChoices(false);
+      return;
+    }
+
+    if (isStreaming) {
+      // Start a 3.5-second timer when streaming begins
+      const timer = setTimeout(() => {
         setShowChoices(true);
-      }
+      }, 3500);
+
+      return () => clearTimeout(timer);
     } else if (!isStreaming && !disabled) {
       // Always show choices when not streaming and not disabled
       setShowChoices(true);
-    } else if (disabled) {
-      // Reset when disabled (new turn starting)
-      setShowChoices(false);
     }
-  }, [isStreaming, streamingText, throttledText, story.current_scene.text, disabled]);
+  }, [isStreaming, disabled]);
 
   const isFinished = story.metadata?.is_finished;
   const maxTurns = story.metadata?.max_turns;
@@ -174,7 +179,7 @@ export const StoryView: React.FC<StoryViewProps> = ({
               <motion.h3
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.4 }}
+                transition={{ duration: 0.6 }}
                 className="font-heading text-2xl font-bold text-center text-primary-700 dark:text-primary-400 transition-colors duration-250"
               >
                 What would you like to do? 🤔
@@ -187,8 +192,8 @@ export const StoryView: React.FC<StoryViewProps> = ({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{
-                      duration: 0.5,
-                      delay: index * 0.15,
+                      duration: 0.8,
+                      delay: index * 0.25,
                       ease: "easeOut"
                     }}
                   >
@@ -206,8 +211,8 @@ export const StoryView: React.FC<StoryViewProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  duration: 0.5,
-                  delay: story.choices.length * 0.15,
+                  duration: 0.8,
+                  delay: story.choices.length * 0.25,
                   ease: "easeOut"
                 }}
                 className="pt-2"
@@ -230,7 +235,7 @@ export const StoryView: React.FC<StoryViewProps> = ({
             <motion.h3
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.6 }}
               className="font-heading text-lg sm:text-xl font-bold text-center text-primary-700 dark:text-primary-400 transition-colors duration-250"
             >
               What would you like to do? 🤔
@@ -243,8 +248,8 @@ export const StoryView: React.FC<StoryViewProps> = ({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{
-                    duration: 0.5,
-                    delay: index * 0.15,
+                    duration: 0.8,
+                    delay: index * 0.25,
                     ease: "easeOut"
                   }}
                 >
@@ -262,8 +267,8 @@ export const StoryView: React.FC<StoryViewProps> = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{
-                duration: 0.5,
-                delay: story.choices.length * 0.15,
+                duration: 0.8,
+                delay: story.choices.length * 0.25,
                 ease: "easeOut"
               }}
             >

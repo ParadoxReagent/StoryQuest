@@ -135,8 +135,6 @@ function App() {
             turn_number: 0,
           },
         ]);
-        // Optimization 3.1: Toast notification on success
-        toast.success('Story started! 🎉');
       }
     } catch (err) {
       console.error('Failed to start story:', err);
@@ -221,8 +219,6 @@ function App() {
         };
 
         setStory(response);
-        // Optimization 3.1: Toast notification on success
-        toast.success('Story continued! ✨');
       }
     } catch (err) {
       console.error('Failed to continue story:', err);
@@ -305,8 +301,6 @@ function App() {
         };
 
         setStory(response);
-        // Optimization 3.1: Toast notification on success
-        toast.success('Story continued! ✨');
       }
     } catch (err) {
       console.error('Failed to continue story:', err);
