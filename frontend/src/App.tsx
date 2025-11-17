@@ -342,12 +342,14 @@ function App() {
       {/* Optimization 3.1: Toast Notifications */}
       <Toaster position="top-center" richColors />
 
-      {/* Optimization 2.4: Dark Mode Toggle */}
-      <ThemeToggle />
-
       {/* Theme Selection and Loading/Error Screens - Traditional Layout */}
       {(appState === 'theme-selection' || appState === 'loading' || appState === 'error') && (
         <div className="container mx-auto px-4 py-8">
+          {/* Theme Toggle - positioned top right */}
+          <div className="flex justify-end mb-4">
+            <ThemeToggle />
+          </div>
+
           {/* Theme Selection Screen */}
           {appState === 'theme-selection' && (
             <ThemeSelection onStart={handleStartStory} disabled={isLoading} />
@@ -412,8 +414,10 @@ function App() {
           {/* Left Column: Story Content (scrollable) */}
           <div className="flex-1 overflow-y-auto">
             <div className="container mx-auto px-4 md:px-6 py-4 md:py-6 space-y-4">
-              {/* Header with New Story Button */}
-              <div className="flex justify-end gap-2">
+              {/* Header with New Story Button and Theme Toggle */}
+              <div className="flex justify-end gap-2 items-center">
+                {/* Optimization 2.4: Dark Mode Toggle */}
+                <ThemeToggle />
                 {/* Toggle Sidebar Button - Desktop only */}
                 <button
                   onClick={() => setIsHistoryCollapsed(!isHistoryCollapsed)}

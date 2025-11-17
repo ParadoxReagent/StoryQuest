@@ -15,20 +15,20 @@ export const ThemeToggle: React.FC = () => {
   return (
     <motion.button
       onClick={toggleMode}
-      className="fixed top-4 right-4 z-50 p-3 rounded-full border-4 border-white/30 bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-all duration-250 shadow-lg"
-      whileHover={{ scale: 1.1 }}
+      className="px-4 py-2 md:px-6 md:py-3 rounded-xl border-4 border-white dark:border-white/20 bg-white/20 dark:bg-white/10 hover:bg-white/30 dark:hover:bg-white/20 text-white font-body font-bold backdrop-blur-sm transition-all duration-200 shadow-lg text-sm md:text-base flex items-center justify-center"
+      whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
       title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
     >
-      <motion.div
+      <motion.span
         initial={false}
         animate={{ rotate: isDark ? 180 : 0 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="text-3xl"
+        className="inline-block"
       >
         {isDark ? '🌙' : '☀️'}
-      </motion.div>
+      </motion.span>
     </motion.button>
   );
 };
