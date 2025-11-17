@@ -4,6 +4,7 @@
  * A toggle button for switching between light and dark modes
  */
 
+import React from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
 
