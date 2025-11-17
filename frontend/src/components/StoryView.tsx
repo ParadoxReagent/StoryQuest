@@ -12,6 +12,8 @@ import type { StoryResponse } from '../types/api';
 import ChoiceButton from './ChoiceButton';
 import CustomInput from './CustomInput';
 import LoadingStoryBook from './LoadingStoryBook';
+import ProgressBar from './ProgressBar';
+import TypingIndicator from './TypingIndicator';
 import { useThrottledText } from '../hooks/useThrottledText';
 
 interface Choice {
@@ -96,7 +98,7 @@ export const StoryView: React.FC<StoryViewProps> = ({
           {/* Story Header - Optimization 2.3 & 2.4: Enhanced typography and dark mode */}
           {story.metadata && (
             <div className="bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 text-white p-4 md:p-6 rounded-2xl shadow-card dark:shadow-card-dark transition-colors duration-250">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2 md:gap-3">
                   <span className="text-3xl md:text-4xl">{themeEmoji}</span>
                   <div>
@@ -117,6 +119,16 @@ export const StoryView: React.FC<StoryViewProps> = ({
                   </p>
                 </div>
               </div>
+
+              {/* Progress Bar - Optimization 3.1 */}
+              {!isFinished && maxTurns && (
+                <div className="opacity-90">
+                  <ProgressBar
+                    currentTurn={story.metadata.turns + 1}
+                    maxTurns={maxTurns}
+                  />
+                </div>
+              )}
             </div>
           )}
 
@@ -137,6 +149,13 @@ export const StoryView: React.FC<StoryViewProps> = ({
           {disabled && !story.current_scene.text && !isFinished && (
             <div className="bg-gradient-to-br from-yellow-50 to-primary-50 dark:from-yellow-900/20 dark:to-primary-900/20 border-4 border-primary-300 dark:border-primary-600 rounded-2xl p-4 md:p-6 shadow-xl dark:shadow-card-dark transition-colors duration-250">
               <LoadingStoryBook message="Creating your story... ✨" />
+            </div>
+          )}
+
+          {/* Typing Indicator - Optimization 3.1: Show while LLM is generating */}
+          {isStreaming && (
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-4 border-primary-300 dark:border-primary-600 rounded-2xl shadow-xl dark:shadow-card-dark transition-colors duration-250">
+              <TypingIndicator />
             </div>
           )}
 
