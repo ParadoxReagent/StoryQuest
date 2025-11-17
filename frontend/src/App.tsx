@@ -1,6 +1,7 @@
 /**
  * Main App Component
  * Phase 4: Minimal Web UI
+ * Optimizations 2.2, 2.3, 2.4: Enhanced themes, typography, and dark mode
  */
 
 import { useState } from 'react';
@@ -9,6 +10,7 @@ import type { StoryResponse } from './types/api';
 import ThemeSelection from './components/ThemeSelection';
 import StoryView from './components/StoryView';
 import StoryHistory from './components/StoryHistory';
+import ThemeToggle from './components/ThemeToggle';
 
 type AppState = 'theme-selection' | 'playing' | 'loading' | 'error';
 
@@ -327,6 +329,9 @@ function App() {
 
   return (
     <div className="min-h-screen">
+      {/* Optimization 2.4: Dark Mode Toggle */}
+      <ThemeToggle />
+
       {/* Theme Selection and Loading/Error Screens - Traditional Layout */}
       {(appState === 'theme-selection' || appState === 'loading' || appState === 'error') && (
         <div className="container mx-auto px-4 py-8">
@@ -338,13 +343,13 @@ function App() {
           {/* Loading Screen */}
           {appState === 'loading' && (
             <div className="max-w-2xl mx-auto">
-              <div className="bg-white p-12 rounded-2xl border-4 border-primary-400 shadow-2xl text-center">
+              <div className="bg-white dark:bg-dark-bg-secondary p-12 rounded-2xl border-4 border-primary-400 dark:border-primary-600 shadow-2xl text-center transition-colors duration-250">
                 <div className="animate-bounce text-8xl mb-6">✨</div>
-                <h2 className="font-kid text-3xl font-bold text-primary-600 mb-4">
+                <h2 className="font-heading text-3xl font-bold text-primary-600 dark:text-primary-400 mb-4">
                   Creating your amazing story...
                 </h2>
                 <div className="flex justify-center">
-                  <div className="animate-spin rounded-full h-16 w-16 border-8 border-primary-500 border-t-transparent"></div>
+                  <div className="animate-spin rounded-full h-16 w-16 border-8 border-primary-500 dark:border-primary-400 border-t-transparent"></div>
                 </div>
               </div>
             </div>
@@ -353,14 +358,14 @@ function App() {
           {/* Error Screen */}
           {appState === 'error' && (
             <div className="max-w-2xl mx-auto">
-              <div className="bg-white p-12 rounded-2xl border-4 border-red-400 shadow-2xl">
+              <div className="bg-white dark:bg-dark-bg-secondary p-12 rounded-2xl border-4 border-red-400 dark:border-red-500 shadow-2xl transition-colors duration-250">
                 <div className="text-center mb-6">
                   <div className="text-8xl mb-4">😕</div>
-                  <h2 className="font-kid text-3xl font-bold text-red-600 mb-4">
+                  <h2 className="font-heading text-3xl font-bold text-red-600 dark:text-red-400 mb-4">
                     Oops! Something went wrong
                   </h2>
                   {error && (
-                    <p className="font-kid text-lg text-gray-700 mb-6">
+                    <p className="font-body text-lg text-gray-700 dark:text-dark-text-secondary mb-6">
                       {error}
                     </p>
                   )}
@@ -369,14 +374,14 @@ function App() {
                 <div className="flex gap-4 justify-center">
                   <button
                     onClick={handleRetry}
-                    className="px-8 py-4 rounded-xl border-4 border-primary-400 bg-primary-500 text-white font-kid text-xl font-bold hover:bg-primary-600 transition-all duration-200 hover:scale-105 shadow-lg"
+                    className="px-8 py-4 rounded-xl border-4 border-primary-400 dark:border-primary-600 bg-primary-500 dark:bg-primary-600 text-white font-body text-xl font-bold hover:bg-primary-600 dark:hover:bg-primary-700 transition-all duration-200 hover:scale-105 shadow-lg"
                     aria-label="Try again"
                   >
                     🔄 Try Again
                   </button>
                   <button
                     onClick={handleNewStory}
-                    className="px-8 py-4 rounded-xl border-4 border-gray-300 bg-white text-gray-700 font-kid text-xl font-bold hover:bg-gray-100 transition-all duration-200 hover:scale-105 shadow-lg"
+                    className="px-8 py-4 rounded-xl border-4 border-gray-300 dark:border-dark-border-primary bg-white dark:bg-dark-bg-tertiary text-gray-700 dark:text-dark-text-primary font-body text-xl font-bold hover:bg-gray-100 dark:hover:bg-dark-bg-secondary transition-all duration-200 hover:scale-105 shadow-lg"
                     aria-label="Start over"
                   >
                     🏠 Start Over
@@ -399,7 +404,7 @@ function App() {
                 {/* Toggle Sidebar Button - Desktop only */}
                 <button
                   onClick={() => setIsHistoryCollapsed(!isHistoryCollapsed)}
-                  className="hidden lg:block px-4 py-2 md:px-6 md:py-3 rounded-xl border-4 border-white bg-white/20 hover:bg-white/30 text-white font-kid font-bold backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg text-sm md:text-base"
+                  className="hidden lg:block px-4 py-2 md:px-6 md:py-3 rounded-xl border-4 border-white dark:border-white/20 bg-white/20 dark:bg-white/10 hover:bg-white/30 dark:hover:bg-white/20 text-white font-body font-bold backdrop-blur-sm transition-all duration-200 hover:scale-105 shadow-lg text-sm md:text-base"
                   aria-label={isHistoryCollapsed ? 'Show sidebar' : 'Hide sidebar'}
                 >
                   {isHistoryCollapsed ? '📖 Show History' : '📖 Hide History'}
@@ -407,7 +412,7 @@ function App() {
                 <button
                   onClick={handleNewStory}
                   disabled={isLoading}
-                  className="px-4 py-2 md:px-6 md:py-3 rounded-xl border-4 border-white bg-white/20 hover:bg-white/30 text-white font-kid font-bold backdrop-blur-sm transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-sm md:text-base"
+                  className="px-4 py-2 md:px-6 md:py-3 rounded-xl border-4 border-white dark:border-white/20 bg-white/20 dark:bg-white/10 hover:bg-white/30 dark:hover:bg-white/20 text-white font-body font-bold backdrop-blur-sm transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-sm md:text-base"
                   aria-label="Start new story"
                 >
                   🔄 New Story
@@ -435,12 +440,12 @@ function App() {
 
           {/* Right Column: Choices and History (Desktop only) */}
           {!isHistoryCollapsed && (
-            <div className="hidden lg:flex lg:flex-col lg:border-l-4 lg:border-primary-200 lg:bg-gradient-to-b lg:from-primary-50 lg:to-white">
+            <div className="hidden lg:flex lg:flex-col lg:border-l-4 lg:border-primary-200 dark:lg:border-dark-border-primary lg:bg-gradient-to-b lg:from-primary-50 dark:lg:from-dark-bg-secondary lg:to-white dark:lg:to-dark-bg-primary transition-colors duration-250">
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {/* Story History - Desktop */}
                 {history.length > 1 && (
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border-4 border-primary-200 shadow-lg">
-                    <h3 className="font-kid text-xl font-bold text-primary-700 mb-3 flex items-center gap-2">
+                  <div className="bg-white/80 dark:bg-dark-bg-tertiary/80 backdrop-blur-sm rounded-2xl p-4 border-4 border-primary-200 dark:border-dark-border-primary shadow-lg transition-colors duration-250">
+                    <h3 className="font-heading text-xl font-bold text-primary-700 dark:text-primary-400 mb-3 flex items-center gap-2">
                       <span className="text-2xl">📖</span>
                       Story So Far
                     </h3>
@@ -448,23 +453,23 @@ function App() {
                       {history.map((turn) => (
                         <div
                           key={turn.turn_number}
-                          className="border-l-4 border-primary-400 pl-3 py-2 bg-white/50 rounded-r-lg"
+                          className="border-l-4 border-primary-400 dark:border-primary-500 pl-3 py-2 bg-white/50 dark:bg-dark-bg-secondary/50 rounded-r-lg transition-colors duration-250"
                         >
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="font-kid text-xs font-bold text-primary-600">
+                            <span className="font-body text-xs font-bold text-primary-600 dark:text-primary-400">
                               Turn {turn.turn_number}
                             </span>
                             {turn.turn_number === 0 && (
-                              <span className="text-xs font-kid bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                              <span className="text-xs font-body bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-0.5 rounded-full">
                                 Start
                               </span>
                             )}
                           </div>
-                          <p className="font-kid text-sm text-gray-700 line-clamp-3">
+                          <p className="font-body text-sm text-gray-700 dark:text-dark-text-secondary line-clamp-3">
                             {turn.scene_text}
                           </p>
                           {(turn.player_choice || turn.custom_input) && (
-                            <p className="font-kid text-xs text-primary-600 italic mt-1">
+                            <p className="font-body text-xs text-primary-600 dark:text-primary-400 italic mt-1">
                               → {turn.custom_input || turn.player_choice}
                             </p>
                           )}

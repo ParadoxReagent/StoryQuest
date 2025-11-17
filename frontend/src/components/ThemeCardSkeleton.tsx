@@ -1,7 +1,8 @@
 /**
  * ThemeCardSkeleton Component
  * Skeleton loading state for theme cards
- * Part of Optimization 2.1: Advanced Micro-Interactions
+ * Optimization 2.1: Advanced Micro-Interactions
+ * Optimization 2.4: Dark Mode Support
  */
 
 import React from 'react';
@@ -10,14 +11,14 @@ import { motion } from 'framer-motion';
 export const ThemeCardSkeleton: React.FC = () => {
   return (
     <motion.div
-      className="p-6 rounded-xl border-4 border-gray-200 bg-white"
+      className="p-6 rounded-xl border-4 border-gray-200 dark:border-dark-border-secondary bg-white dark:bg-dark-bg-tertiary transition-colors duration-250"
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
     >
       {/* Emoji skeleton */}
       <motion.div
-        className="w-16 h-16 bg-gray-200 rounded-lg mb-3"
+        className="w-16 h-16 rounded-lg mb-3"
         animate={{
           backgroundColor: ['#e5e7eb', '#f3f4f6', '#e5e7eb'],
         }}
@@ -30,7 +31,7 @@ export const ThemeCardSkeleton: React.FC = () => {
 
       {/* Title skeleton */}
       <motion.div
-        className="h-7 bg-gray-200 rounded-md mb-2"
+        className="h-7 rounded-md mb-2"
         animate={{
           backgroundColor: ['#e5e7eb', '#f3f4f6', '#e5e7eb'],
         }}
@@ -44,7 +45,7 @@ export const ThemeCardSkeleton: React.FC = () => {
 
       {/* Description skeleton - 2 lines */}
       <motion.div
-        className="h-4 bg-gray-200 rounded-md mb-1"
+        className="h-4 rounded-md mb-1"
         animate={{
           backgroundColor: ['#e5e7eb', '#f3f4f6', '#e5e7eb'],
         }}
@@ -56,7 +57,7 @@ export const ThemeCardSkeleton: React.FC = () => {
         }}
       />
       <motion.div
-        className="h-4 bg-gray-200 rounded-md w-3/4"
+        className="h-4 rounded-md w-3/4"
         animate={{
           backgroundColor: ['#e5e7eb', '#f3f4f6', '#e5e7eb'],
         }}

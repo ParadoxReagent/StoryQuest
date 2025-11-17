@@ -1,6 +1,8 @@
 /**
  * CustomInput Component
  * Allows players to type their own response
+ * Optimization 2.3: Typography & Visual Hierarchy
+ * Optimization 2.4: Dark Mode Support
  */
 
 import React, { useState } from 'react';
@@ -37,12 +39,12 @@ export const CustomInput: React.FC<CustomInputProps> = ({
         onClick={() => setIsExpanded(true)}
         disabled={disabled}
         className={`
-          w-full p-3 md:p-4 rounded-xl border-4 border-dashed transition-all duration-200
+          w-full p-3 md:p-4 rounded-xl border-4 border-dashed transition-all duration-250
           ${disabled
-            ? 'bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed'
-            : 'bg-white border-primary-300 text-primary-700 hover:border-primary-500 hover:bg-primary-50'
+            ? 'bg-gray-100 dark:bg-dark-bg-tertiary border-gray-300 dark:border-dark-border-secondary text-gray-500 dark:text-dark-text-tertiary cursor-not-allowed'
+            : 'bg-white dark:bg-dark-bg-tertiary border-primary-300 dark:border-dark-border-primary text-primary-700 dark:text-primary-400 hover:border-primary-500 dark:hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-dark-bg-secondary'
           }
-          font-kid text-base md:text-lg font-bold
+          font-body text-base md:text-lg font-bold
         `}
         aria-label="Type your own response"
       >
@@ -56,8 +58,8 @@ export const CustomInput: React.FC<CustomInputProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
-      <div className="bg-white p-3 md:p-4 rounded-xl border-4 border-primary-400 shadow-lg">
-        <label htmlFor="custom-input" className="block mb-2 font-kid text-base md:text-lg font-bold text-primary-700">
+      <div className="bg-white dark:bg-dark-bg-secondary p-3 md:p-4 rounded-xl border-4 border-primary-400 dark:border-primary-600 shadow-card dark:shadow-card-dark transition-colors duration-250">
+        <label htmlFor="custom-input" className="block mb-2 font-heading text-base md:text-lg font-bold text-primary-700 dark:text-primary-400">
           What would you like to do? ✏️
         </label>
         <textarea
@@ -67,13 +69,13 @@ export const CustomInput: React.FC<CustomInputProps> = ({
           disabled={disabled}
           maxLength={maxLength}
           placeholder="Type your own creative idea here..."
-          className="w-full p-2 md:p-3 border-2 border-primary-200 rounded-lg font-kid text-base md:text-lg resize-none focus:outline-none focus:border-primary-500"
+          className="w-full p-2 md:p-3 border-2 border-primary-200 dark:border-dark-border-secondary rounded-lg font-body text-base md:text-lg bg-white dark:bg-dark-bg-tertiary text-gray-800 dark:text-dark-text-primary placeholder-gray-400 dark:placeholder-dark-text-tertiary resize-none focus:outline-none focus:border-primary-500 dark:focus:border-primary-400 transition-colors duration-250"
           rows={3}
           autoFocus
           aria-label="Custom input text area"
         />
         <div className="flex items-center justify-between mt-2">
-          <span className={`text-xs md:text-sm font-kid ${remainingChars < 20 ? 'text-red-500 font-bold' : 'text-gray-500'}`}>
+          <span className={`text-xs md:text-sm font-body ${remainingChars < 20 ? 'text-red-500 dark:text-red-400 font-bold' : 'text-gray-500 dark:text-dark-text-tertiary'}`}>
             {remainingChars} left
           </span>
           <div className="flex gap-2">
@@ -83,7 +85,7 @@ export const CustomInput: React.FC<CustomInputProps> = ({
                 setInputValue('');
                 setIsExpanded(false);
               }}
-              className="px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base rounded-lg border-2 border-gray-300 bg-white text-gray-700 font-kid font-bold hover:bg-gray-100 transition-colors"
+              className="px-3 md:px-4 py-1.5 md:py-2 text-sm md:text-base rounded-lg border-2 border-gray-300 dark:border-dark-border-secondary bg-white dark:bg-dark-bg-tertiary text-gray-700 dark:text-dark-text-primary font-body font-bold hover:bg-gray-100 dark:hover:bg-dark-bg-secondary transition-all duration-250"
               aria-label="Cancel custom input"
             >
               Cancel
@@ -92,10 +94,10 @@ export const CustomInput: React.FC<CustomInputProps> = ({
               type="submit"
               disabled={!isValid}
               className={`
-                px-4 md:px-6 py-1.5 md:py-2 text-sm md:text-base rounded-lg font-kid font-bold transition-all duration-200
+                px-4 md:px-6 py-1.5 md:py-2 text-sm md:text-base rounded-lg font-body font-bold transition-all duration-250
                 ${isValid
-                  ? 'bg-gradient-to-r from-green-400 to-green-500 text-white hover:from-green-500 hover:to-green-600 shadow-md hover:shadow-lg'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ? 'bg-gradient-to-r from-green-400 to-green-500 dark:from-green-500 dark:to-green-600 text-white hover:from-green-500 hover:to-green-600 dark:hover:from-green-600 dark:hover:to-green-700 shadow-md hover:shadow-lg dark:shadow-card-dark'
+                  : 'bg-gray-300 dark:bg-dark-bg-tertiary text-gray-500 dark:text-dark-text-tertiary cursor-not-allowed'
                 }
               `}
               aria-label="Submit custom input"
