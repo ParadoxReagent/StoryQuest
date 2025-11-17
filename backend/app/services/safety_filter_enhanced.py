@@ -101,12 +101,9 @@ class EnhancedSafetyFilter:
             "war", "battle", "combat", "destroy", "destruction",
 
             # Fear & horror
-            "scary", "terrify", "terror", "fear", "afraid", "frightening",
+            "terrify", "terror", "fear", "afraid", "frightening",
             "horror", "horrify", "nightmare", "dread",
-            "monster", "beast", "creature", "demon", "devil",
-            "ghost", "spirit", "haunted", "spooky",
-            "zombie", "vampire", "werewolf", "undead",
-            "evil", "wicked", "sinister", "dark", "darkness",
+            "monster", "demon", "devil","evil", "wicked", "sinister",
 
             # Negative & harmful
             "hate", "hatred", "despise", "loathe",
@@ -121,9 +118,7 @@ class EnhancedSafetyFilter:
             "hell", "damn", "dammit", "crap", "suck",
 
             # Danger & risk
-            "danger", "dangerous", "hazard", "peril",
-            "poison", "toxic", "venom",
-            "trap", "trapped", "capture", "caught",
+            "poison", "toxic", "venom", "trapped", "capture", "caught",
             "lost", "alone", "abandoned", "stranded",
 
             # Sadness (excessive)

@@ -6,8 +6,8 @@
  * Optimization 2.4: Dark Mode Support
  */
 
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import type { StoryResponse } from '../types/api';
 import ChoiceButton from './ChoiceButton';
 import CustomInput from './CustomInput';
@@ -47,6 +47,25 @@ export const StoryView: React.FC<StoryViewProps> = ({
   // Always prefer throttled text if it exists (even after streaming stops)
   // This ensures smooth completion of the reveal animation
   const displayText = throttledText || story.current_scene.text;
+
+  // Track whether choices should be visible based on streaming progress
+  const [showChoices, setShowChoices] = useState(false);
+
+  // Determine when to show choices (halfway through streaming)
+  useEffect(() => {
+    if (isStreaming && streamingText && story.current_scene.text) {
+      const progress = throttledText.length / story.current_scene.text.length;
+      if (progress >= 0.5) {
+        setShowChoices(true);
+      }
+    } else if (!isStreaming && !disabled) {
+      // Always show choices when not streaming and not disabled
+      setShowChoices(true);
+    } else if (disabled) {
+      // Reset when disabled (new turn starting)
+      setShowChoices(false);
+    }
+  }, [isStreaming, streamingText, throttledText, story.current_scene.text, disabled]);
 
   const isFinished = story.metadata?.is_finished;
   const maxTurns = story.metadata?.max_turns;
@@ -106,21 +125,10 @@ export const StoryView: React.FC<StoryViewProps> = ({
             <div className="prose prose-lg max-w-none story-text-container">
               {/* Max height for story text with scrolling - Optimization 1.2 */}
               <div className="min-h-[4rem] max-h-[60vh] overflow-y-auto">
-                {/* Scene Transition Animations - Optimization 2.1 */}
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={story.metadata?.turns || 0}
-                    initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
-                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                    exit={{ opacity: 0, y: -20, filter: "blur(10px)" }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                  >
-                    {/* Optimization 2.3: Enhanced typography with font-body */}
-                    <p className="font-body text-lg sm:text-xl md:text-2xl leading-normal text-gray-800 dark:text-dark-text-primary whitespace-pre-wrap story-text-smooth transition-colors duration-250">
-                      {displayText}
-                    </p>
-                  </motion.div>
-                </AnimatePresence>
+                {/* Optimization 2.3: Enhanced typography with font-body */}
+                <p className="font-body text-lg sm:text-xl md:text-2xl leading-normal text-gray-800 dark:text-dark-text-primary whitespace-pre-wrap story-text-smooth transition-colors duration-250">
+                  {displayText}
+                </p>
               </div>
             </div>
           </div>
@@ -142,63 +150,110 @@ export const StoryView: React.FC<StoryViewProps> = ({
           )}
 
           {/* Choices for Desktop - Inline - Optimization 2.3 & 2.4 */}
-          {!disabled && !isStreaming && !isFinished && (
+          {showChoices && !isFinished && (
             <div className="hidden lg:block space-y-4">
-              <h3 className="font-heading text-2xl font-bold text-center text-primary-700 dark:text-primary-400 transition-colors duration-250">
+              <motion.h3
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4 }}
+                className="font-heading text-2xl font-bold text-center text-primary-700 dark:text-primary-400 transition-colors duration-250"
+              >
                 What would you like to do? 🤔
-              </h3>
+              </motion.h3>
 
               <div className="space-y-3">
-                {story.choices.map((choice) => (
-                  <ChoiceButton
+                {story.choices.map((choice, index) => (
+                  <motion.div
                     key={choice.choice_id}
-                    choice={choice}
-                    onClick={() => onChoiceClick(choice)}
-                    disabled={disabled}
-                  />
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.5,
+                      delay: index * 0.15,
+                      ease: "easeOut"
+                    }}
+                  >
+                    <ChoiceButton
+                      choice={choice}
+                      onClick={() => onChoiceClick(choice)}
+                      disabled={disabled}
+                    />
+                  </motion.div>
                 ))}
               </div>
 
               {/* Custom Input */}
-              <div className="pt-2">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.5,
+                  delay: story.choices.length * 0.15,
+                  ease: "easeOut"
+                }}
+                className="pt-2"
+              >
                 <CustomInput
                   onSubmit={onCustomInput}
                   disabled={disabled}
                   maxLength={200}
                 />
-              </div>
+              </motion.div>
             </div>
           )}
         </div>
       </div>
 
       {/* Fixed Choice Bar - Mobile/Tablet - Optimization 1.1, 2.3 & 2.4 */}
-      {!disabled && !isStreaming && !isFinished && (
+      {showChoices && !isFinished && (
         <div className="lg:hidden fixed inset-x-0 bottom-0 z-30 border-t-4 border-primary-300 dark:border-dark-border-primary bg-white/95 dark:bg-dark-bg-secondary/95 backdrop-blur-sm shadow-2xl dark:shadow-card-dark transition-colors duration-250">
           <div className="max-w-4xl mx-auto p-4 space-y-3">
-            <h3 className="font-heading text-lg sm:text-xl font-bold text-center text-primary-700 dark:text-primary-400 transition-colors duration-250">
+            <motion.h3
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
+              className="font-heading text-lg sm:text-xl font-bold text-center text-primary-700 dark:text-primary-400 transition-colors duration-250"
+            >
               What would you like to do? 🤔
-            </h3>
+            </motion.h3>
 
             <div className="space-y-2">
-              {story.choices.map((choice) => (
-                <ChoiceButton
+              {story.choices.map((choice, index) => (
+                <motion.div
                   key={choice.choice_id}
-                  choice={choice}
-                  onClick={() => onChoiceClick(choice)}
-                  disabled={disabled}
-                />
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.5,
+                    delay: index * 0.15,
+                    ease: "easeOut"
+                  }}
+                >
+                  <ChoiceButton
+                    choice={choice}
+                    onClick={() => onChoiceClick(choice)}
+                    disabled={disabled}
+                  />
+                </motion.div>
               ))}
             </div>
 
             {/* Custom Input */}
-            <div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.5,
+                delay: story.choices.length * 0.15,
+                ease: "easeOut"
+              }}
+            >
               <CustomInput
                 onSubmit={onCustomInput}
                 disabled={disabled}
                 maxLength={200}
               />
-            </div>
+            </motion.div>
           </div>
         </div>
       )}
