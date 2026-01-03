@@ -463,11 +463,11 @@ tts:
 ```
 
 **Parameters**:
-| Parameter | Type | Default | Range | Description |
-|-----------|------|---------|-------|-------------|
-| `text` | string | required | 1-5000 chars | Text to synthesize |
-| `voice` | string | `af_heart` | see below | Voice ID to use |
-| `speed` | float | `1.0` | 0.5-2.0 | Speech speed multiplier |
+| Parameter | Type   | Default    | Range        | Description             |
+|-----------|--------|------------|--------------|-------------------------|
+| `text`    | string | required   | 1-5000 chars | Text to synthesize      |
+| `voice`   | string | `af_heart` | see below    | Voice ID to use         |
+| `speed`   | float  | `1.0`      | 0.5-2.0      | Speech speed multiplier |
 
 **Available Voices (44 total)**:
 
@@ -549,11 +549,11 @@ tts:
 ```
 
 **Parameters**:
-| Parameter | Type | Default | Range | Description |
-|-----------|------|---------|-------|-------------|
-| `text` | string | required | 1-5000 chars | Text to synthesize |
-| `exaggeration` | float | `0.5` | 0.0-1.0 | Emotion/expressiveness level |
-| `cfg_weight` | float | `0.5` | 0.0-1.0 | Voice characteristic adherence |
+| Parameter      | Type   | Default  | Range        | Description                    |
+|----------------|--------|----------|--------------|--------------------------------|
+| `text`         | string | required | 1-5000 chars | Text to synthesize             |
+| `exaggeration` | float  | `0.5`    | 0.0-1.0      | Emotion/expressiveness level   |
+| `cfg_weight`   | float  | `0.5`    | 0.0-1.0      | Voice characteristic adherence |
 
 **Parameter Tips**:
 - **Higher exaggeration** (0.7+): More dramatic, expressive delivery (may increase speed)
@@ -587,11 +587,11 @@ export async function synthesizeSpeech(request: TTSRequest): Promise<string> {
 
 Both services expose the same endpoints on port 8001:
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Health check and device info |
-| `/synthesize` | POST | Generate speech audio (returns WAV) |
-| `/cache` | DELETE | Clear the audio cache |
+| Endpoint.     | Method | Description                         |
+|---------------|--------|-------------------------------------|
+| `/health`     | GET    | Health check and device info        |
+| `/synthesize` | POST   | Generate speech audio (returns WAV) |
+| `/cache`      | DELETE | Clear the audio cache               |
 
 ---
 

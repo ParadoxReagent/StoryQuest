@@ -22,7 +22,7 @@ Build a kid-friendly, interactive text adventure game where:
 - ✅ Safe tone: no horror, gore, or adult themes.
 - ✅ Easy to extend with:
   - Achievements / badges
-  - TTS (narration)
+- ✅ TTS (narration)
   - Optional images (local diffusion or cloud image APIs)
 
 ---
