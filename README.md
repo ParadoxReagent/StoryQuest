@@ -32,7 +32,14 @@ StoryQuest is a safe, creative, and educational storytelling platform where chil
 - **Dynamic Choices**: Select from AI-generated options or write your own creative responses
 - **Story History**: Review your adventure journey from beginning to end
 - **Progress Tracking**: Visual indicators for story completion and turns
-- **Text-to-Speech**: Read-aloud mode on iOS for younger children (Phase 5)
+- **Text-to-Speech**: Story narration on web (Kokoro/Chatterbox TTS) and iOS (native AVFoundation)
+
+### 🔊 **Text-to-Speech Narration**
+- **Kokoro TTS** (Default): Fast, lightweight 82M model - perfect for CPU and Apple Silicon
+- **Chatterbox TTS** (Alternative): Higher quality with voice cloning - requires NVIDIA GPU
+- **44+ Voice Options**: American, British, Japanese, Chinese, Spanish, French, and more
+- **Customizable**: Adjust speed, emotion, and voice characteristics
+- **Cached Audio**: Previously generated narrations are cached for instant playback
 
 ### 🚀 **Production-Ready**
 - **Docker Deployment**: Complete containerized setup with docker-compose
@@ -52,33 +59,32 @@ StoryQuest is built with a modern, scalable architecture:
 │                   Frontend Clients                      │
 │  ┌──────────────────┐      ┌──────────────────┐         │
 │  │   React Web UI   │      │  SwiftUI iOS App │         │
-│  │  (Vite + Tailwind) │    │  (iPad Optimized) │        │
-│  └──────────────────┘      └──────────────────┘         │
-└───────────────┬─────────────────────┬───────────────────┘
-                │                     │
-                └──────────┬──────────┘
-                           │
-                ┌──────────▼──────────┐
-                │   FastAPI Backend   │
-                │  ┌──────────────┐   │
-                │  │ Story Engine │   │
-                │  └──────┬───────┘   │
-                │         │           │
-                │  ┌──────▼───────┐   │
-                │  │ Safety Filter│   │
-                │  └──────┬───────┘   │
-                │         │           │
-                │  ┌──────▼───────┐   │
-                │  │ LLM Providers│   │
-                │  └──────────────┘   │
-                └──────────┬──────────┘
-                           │
-        ┌──────────────────┼─────────────────┐
-        │                  │                 │
-   ┌────▼────┐      ┌──────▼──────┐    ┌─────▼─────┐
-   │ Ollama  │      │   OpenAI    │    │ Anthropic │
-   │ (Local) │      │  (Cloud)    │    │  (Cloud)  │
-   └─────────┘      └─────────────┘    └───────────┘
+│  │ (Vite + Tailwind)│      │  (iPad Optimized)│         │
+│  └────────┬─────────┘      └─────────┬────────┘         │
+└───────────┼─────────────────────────┼───────────────────┘
+            │                         │
+            ├─────────────────────────┤
+            │                         │
+┌───────────▼───────────┐   ┌─────────▼─────────┐
+│   FastAPI Backend     │   │   TTS Service     │
+│  ┌──────────────┐     │   │  ┌─────────────┐  │
+│  │ Story Engine │     │   │  │ Kokoro TTS  │  │
+│  └──────┬───────┘     │   │  │   (Default) │  │
+│         │             │   │  └─────────────┘  │
+│  ┌──────▼───────┐     │   │        or         │
+│  │ Safety Filter│     │   │  ┌─────────────┐  │
+│  └──────┬───────┘     │   │  │ Chatterbox  │  │
+│         │             │   │  │ (GPU/CUDA)  │  │
+│  ┌──────▼───────┐     │   │  └─────────────┘  │
+│  │ LLM Providers│     │   └───────────────────┘
+│  └──────────────┘     │
+└──────────┬────────────┘
+           │
+  ┌────────┼────────┬─────────────┐
+  │        │        │             │
+┌─▼────┐ ┌─▼─────┐ ┌▼─────┐ ┌─────▼───────────┐
+│Ollama│ │OpenAI │ │Claude│ │Gemini/OpenRouter│
+└──────┘ └───────┘ └──────┘ └─────────────────┘
 ```
 
 ---
@@ -121,6 +127,10 @@ StoryQuest is built with a modern, scalable architecture:
 ### AI/LLM Providers
 - **Local**: Ollama (llama3.2, qwen2.5, gemma2, etc.)
 - **Cloud**: OpenAI, Anthropic Claude, Google Gemini, OpenRouter
+
+### Text-to-Speech
+- **Kokoro TTS**: 82M parameter model, CPU/MPS optimized, 44+ voices
+- **Chatterbox TTS**: Resemble AI's model with voice cloning, CUDA recommended
 
 ---
 
@@ -352,6 +362,16 @@ StoryQuest/
 │   ├── Examples/              # Reference implementations
 │   └── README.md              # iOS development guide
 │
+├── tts-kokoro/                 # Kokoro TTS Service (Default) ✅
+│   ├── app.py                 # FastAPI TTS wrapper
+│   ├── Dockerfile             # Container image (CPU/MPS)
+│   └── requirements.txt       # Python dependencies
+│
+├── tts-chatterbox/             # Chatterbox TTS Service (Alternative) ✅
+│   ├── app.py                 # FastAPI TTS wrapper
+│   ├── Dockerfile             # Container image (CUDA)
+│   └── requirements.txt       # Python dependencies
+│
 ├── docker-compose.yml         # Production Docker setup ✅
 ├── docker-compose.dev.yml     # Development overrides ✅
 ├── .env.example               # Environment template ✅
@@ -400,6 +420,178 @@ StoryQuest prioritizes child safety with multiple layers of protection:
 ✅ Focus on curiosity, problem-solving, and kindness
 ✅ Input validation and sanitization
 ✅ Automatic fallback for rejected content
+
+---
+
+## 🔊 Text-to-Speech Configuration
+
+StoryQuest includes two TTS options for story narration. Click the speaker button in the story header to hear the current scene read aloud.
+
+### Choosing a TTS Provider
+
+Edit `docker-compose.yml` to switch between providers:
+
+```yaml
+# In docker-compose.yml, only ONE tts service should be uncommented at a time
+
+# Option 1: Kokoro TTS (DEFAULT) - Fast, works on CPU/Apple Silicon
+tts:
+  build:
+    context: ./tts-kokoro
+    ...
+
+# Option 2: Chatterbox TTS - Higher quality, requires NVIDIA GPU
+# Uncomment this and comment out Kokoro above to switch
+# tts:
+#   build:
+#     context: ./tts-chatterbox
+#     ...
+```
+
+### Kokoro TTS (Default)
+
+**Best for**: CPU-only systems, Apple Silicon Macs, faster response times
+
+**API Endpoint**: `POST /synthesize`
+
+```json
+{
+  "text": "Once upon a time...",
+  "voice": "af_heart",
+  "speed": 1.0
+}
+```
+
+**Parameters**:
+| Parameter | Type | Default | Range | Description |
+|-----------|------|---------|-------|-------------|
+| `text` | string | required | 1-5000 chars | Text to synthesize |
+| `voice` | string | `af_heart` | see below | Voice ID to use |
+| `speed` | float | `1.0` | 0.5-2.0 | Speech speed multiplier |
+
+**Available Voices (44 total)**:
+
+<details>
+<summary>🇺🇸 American English (20 voices)</summary>
+
+|   Voice ID   | Gender | Quality |         Notes       |
+|--------------|--------|---------|---------------------|
+| `af_heart`   | Female | ⭐ A    | Recommended default |
+| `af_bella`   | Female | A-      | Warm, expressive    |
+| `af_nicole`  | Female | B-      | Clear, professional |
+| `af_sarah`   | Female | C+      | Friendly            |
+| `af_aoede`   | Female | C+      | Soft                |
+| `af_kore`    | Female | C+      | Young               |
+| `af_nova`    | Female | C       | Bright              |
+| `af_alloy`.  | Female | C       | Neutral             |
+| `af_sky`     | Female | C-      | Light               |
+| `af_jessica` | Female | D       | Casual              |
+| `af_river`   | Female | D       | Calm                |
+| `am_fenrir`  | Male   | C+      | Deep, authoritative |
+| `am_michael` | Male   | C+      | Professional        |
+| `am_puck`    | Male   | C+      | Playful             |
+| `am_adam`    | Male   | F+      | Standard            |
+| `am_echo`    | Male   | D       | Smooth              |
+| `am_eric`    | Male   | D       | Casual              |
+| `am_liam`    | Male   | D       | Young               |
+| `am_onyx`    | Male   | D       | Deep                |
+| `am_santa`   | Male   | D-      | Festive             |
+
+</details>
+
+<details>
+<summary>🇬🇧 British English (8 voices)</summary>
+
+|   Voice ID    | Gender | Quality |
+|---------------|--------|---------|
+| `bf_emma`     | Female | B-      |
+| `bf_isabella` | Female | C       |
+| `bf_alice`    | Female | D       |
+| `bf_lily`     | Female | D       |
+| `bm_fable`    | Male   | C       |
+| `bm_george`   | Male   | C       |
+| `bm_lewis`    | Male   | D+      |
+| `bm_daniel`   | Male   | D       |
+
+</details>
+
+<details>
+<summary>🌍 Other Languages (16 voices)</summary>
+
+**Japanese**: `jf_alpha`, `jf_gongitsune`, `jf_nezumi`, `jf_tebukuro`, `jm_kumo`
+
+**Mandarin Chinese**: `zf_xiaobei`, `zf_xiaoni`, `zf_xiaoxiao`, `zf_xiaoyi`, `zm_yunjian`, `zm_yunxi`, `zm_yunxia`, `zm_yunyang`
+
+**Spanish**: `ef_dora`, `em_alex`, `em_santa`
+
+**French**: `ff_siwis`
+
+**Hindi**: `hf_alpha`, `hf_beta`, `hm_omega`, `hm_psi`
+
+**Italian**: `if_sara`, `im_nicola`
+
+**Brazilian Portuguese**: `pf_dora`, `pm_alex`, `pm_santa`
+
+</details>
+
+### Chatterbox TTS (Alternative)
+
+**Best for**: Systems with NVIDIA GPU, highest quality output, voice cloning
+
+**API Endpoint**: `POST /synthesize`
+
+```json
+{
+  "text": "Once upon a time...",
+  "exaggeration": 0.5,
+  "cfg_weight": 0.5
+}
+```
+
+**Parameters**:
+| Parameter | Type | Default | Range | Description |
+|-----------|------|---------|-------|-------------|
+| `text` | string | required | 1-5000 chars | Text to synthesize |
+| `exaggeration` | float | `0.5` | 0.0-1.0 | Emotion/expressiveness level |
+| `cfg_weight` | float | `0.5` | 0.0-1.0 | Voice characteristic adherence |
+
+**Parameter Tips**:
+- **Higher exaggeration** (0.7+): More dramatic, expressive delivery (may increase speed)
+- **Lower cfg_weight** (0.3): Better pacing, reduced accent transfer
+- **Default values** (0.5/0.5): Balanced, natural speech
+
+**Advanced Features**:
+- Supports `[laugh]`, `[cough]`, `[chuckle]` tags for natural expressiveness
+- Voice cloning available via `audio_prompt_path` parameter (requires ~10s reference audio)
+
+### Customizing the Default Voice
+
+To change the default voice used for story narration, edit the frontend TTS service:
+
+**File**: `frontend/src/services/tts.ts`
+
+```typescript
+export async function synthesizeSpeech(request: TTSRequest): Promise<string> {
+  const response = await fetch(`${TTS_BASE_URL}/synthesize`, {
+    // ...
+    body: JSON.stringify({
+      text: request.text,
+      voice: request.voice ?? 'af_bella',  // Change default voice here
+      speed: request.speed ?? 1.0,
+    }),
+  });
+}
+```
+
+### TTS API Endpoints
+
+Both services expose the same endpoints on port 8001:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check and device info |
+| `/synthesize` | POST | Generate speech audio (returns WAV) |
+| `/cache` | DELETE | Clear the audio cache |
 
 ---
 
@@ -565,13 +757,21 @@ npm run lint -- --fix          # Auto-fix issues
 - ✅ Graceful fallback responses
 
 #### DevOps & Deployment
-- ✅ Complete Docker setup (backend + frontend)
+- ✅ Complete Docker setup (backend + frontend + TTS)
 - ✅ Docker Compose orchestration
 - ✅ Multi-stage builds for optimization
 - ✅ Health checks and auto-restart
 - ✅ Development mode with hot reload
 - ✅ Production-ready Nginx configuration
 - ✅ Environment-based configuration
+- ✅ Non-root container security
+
+#### Text-to-Speech Integration
+- ✅ Kokoro TTS service (CPU/MPS optimized, 44+ voices)
+- ✅ Chatterbox TTS service (CUDA GPU, voice cloning)
+- ✅ Web UI speaker button for narration
+- ✅ Audio caching for instant replay
+- ✅ Configurable voice and speed settings
 
 ### 📋 Planned Enhancements
 
@@ -630,6 +830,7 @@ To be determined. This is currently a personal/educational project.
 - [x] **Phase 5**: Native iOS/iPadOS app
 - [x] **Phase 6**: Enhanced safety and content moderation
 - [x] **DevOps**: Docker deployment and orchestration
+- [x] **TTS**: Text-to-speech narration (Kokoro + Chatterbox)
 - [ ] **Phase 7**: Image generation, achievements, and extended features
 - [ ] **Phase 8**: Comprehensive testing and production deployment
 - [ ] **Future**: Mobile apps for Android, story sharing, multiplayer stories
@@ -645,6 +846,8 @@ Built with:
 - [Ollama](https://ollama.ai/) - Local LLM platform
 - [OpenAI](https://openai.com/) - GPT models
 - [Anthropic](https://www.anthropic.com/) - Claude models
+- [Kokoro TTS](https://github.com/hexgrad/kokoro) - Fast, lightweight text-to-speech
+- [Chatterbox TTS](https://github.com/resemble-ai/chatterbox) - High-quality TTS with voice cloning
 - [Docker](https://www.docker.com/) - Containerization platform
 - [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
 

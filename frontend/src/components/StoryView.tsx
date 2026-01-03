@@ -6,7 +6,7 @@
  * Optimization 2.4: Dark Mode Support
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import type { StoryResponse } from '../types/api';
 import ChoiceButton from './ChoiceButton';
@@ -15,6 +15,7 @@ import LoadingStoryBook from './LoadingStoryBook';
 import ProgressBar from './ProgressBar';
 import TypingIndicator from './TypingIndicator';
 import { useThrottledText } from '../hooks/useThrottledText';
+import { TTSPlayer, initialTTSState, type TTSPlaybackState } from '../services/tts';
 
 interface Choice {
   choice_id: string;
@@ -52,6 +53,32 @@ export const StoryView: React.FC<StoryViewProps> = ({
 
   // Track whether choices should be visible based on streaming progress
   const [showChoices, setShowChoices] = useState(false);
+
+  // TTS state management
+  const [ttsState, setTtsState] = useState<TTSPlaybackState>(initialTTSState);
+  const ttsPlayerRef = useRef<TTSPlayer | null>(null);
+
+  // Initialize TTS player
+  useEffect(() => {
+    ttsPlayerRef.current = new TTSPlayer(setTtsState);
+    return () => {
+      ttsPlayerRef.current?.destroy();
+    };
+  }, []);
+
+  // Stop TTS when scene changes
+  useEffect(() => {
+    ttsPlayerRef.current?.stop();
+  }, [story.current_scene.scene_id]);
+
+  // Handle TTS button click
+  const handleTTSClick = useCallback(() => {
+    if (!ttsPlayerRef.current) return;
+    const textToSpeak = story.current_scene.text;
+    if (textToSpeak) {
+      ttsPlayerRef.current.toggle(textToSpeak);
+    }
+  }, [story.current_scene.text]);
 
   // Show choices after a 2-second delay from when streaming starts
   useEffect(() => {
@@ -117,11 +144,43 @@ export const StoryView: React.FC<StoryViewProps> = ({
                     )}
                   </div>
                 </div>
-                <div className="text-right hidden sm:block">
-                  <p className="font-body text-sm text-primary-100 dark:text-primary-200">Session ID</p>
-                  <p className="font-body text-xs text-primary-200 dark:text-primary-300 font-mono">
-                    {story.session_id.substring(0, 8)}...
-                  </p>
+                <div className="flex items-center gap-3">
+                  {/* TTS Narration Button */}
+                  <button
+                    onClick={handleTTSClick}
+                    disabled={ttsState.isLoading || isStreaming || !story.current_scene.text}
+                    className={`
+                      p-2 rounded-full transition-all duration-200
+                      ${ttsState.isPlaying
+                        ? 'bg-white/30 text-white'
+                        : 'bg-white/10 hover:bg-white/20 text-white/80 hover:text-white'
+                      }
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                    `}
+                    title={ttsState.isPlaying ? 'Pause narration' : 'Play narration'}
+                    aria-label={ttsState.isPlaying ? 'Pause narration' : 'Play narration'}
+                  >
+                    {ttsState.isLoading ? (
+                      <svg className="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                    ) : ttsState.isPlaying ? (
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                      </svg>
+                    )}
+                  </button>
+                  <div className="text-right hidden sm:block">
+                    <p className="font-body text-sm text-primary-100 dark:text-primary-200">Session ID</p>
+                    <p className="font-body text-xs text-primary-200 dark:text-primary-300 font-mono">
+                      {story.session_id.substring(0, 8)}...
+                    </p>
+                  </div>
                 </div>
               </div>
 

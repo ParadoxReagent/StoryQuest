@@ -71,23 +71,95 @@ services:
       args:
         # API URL - points to backend service
         - VITE_API_URL=http://localhost:8000
+        # TTS URL - points to TTS service (Kokoro by default, or Chatterbox)
+        - VITE_TTS_URL=http://localhost:8001
     container_name: storyquest-frontend
     ports:
-      - "3000:80"
+      - "3000:8080"
     depends_on:
       - backend
     networks:
       - storyquest-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
+  # =============================================================================
+  # TTS SERVICES - Choose ONE of the following TTS services
+  # =============================================================================
+  #
+  # Option 1: Kokoro TTS (DEFAULT) - Fast, lightweight, works great on CPU/Apple Silicon
+  # Option 2: Chatterbox TTS - Higher quality but requires NVIDIA GPU for good performance
+  #
+  # To switch TTS providers:
+  #   - Comment out the one you don't want
+  #   - Uncomment the one you do want
+  #   - Both use port 8001, so only ONE should be active at a time
+  # =============================================================================
+
+  # Kokoro TTS Service (DEFAULT) - Fast CPU/MPS performance
+  # Recommended for: Mac (Apple Silicon), CPU-only systems, faster response times
+  tts:
+    build:
+      context: ./tts-kokoro
+      dockerfile: Dockerfile
+    container_name: storyquest-tts
+    ports:
+      - "8001:8001"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTORCH_ENABLE_MPS_FALLBACK=1
+    volumes:
+      - tts-cache:/app/cache
+    networks:
+      - storyquest-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 60s
+
+  # Chatterbox TTS Service (ALTERNATIVE) - Higher quality, requires NVIDIA GPU
+  # Recommended for: Systems with NVIDIA CUDA GPU
+  # To use: Comment out Kokoro above, uncomment this section
+  # tts:
+  #   build:
+  #     context: ./tts-chatterbox
+  #     dockerfile: Dockerfile
+  #   container_name: storyquest-tts
+  #   ports:
+  #     - "8001:8001"
+  #   environment:
+  #     - PYTHONUNBUFFERED=1
+  #   volumes:
+  #     - tts-cache:/app/cache
+  #   networks:
+  #     - storyquest-network
+  #   restart: unless-stopped
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+  #     interval: 30s
+  #     timeout: 30s
+  #     retries: 3
+  #     start_period: 120s
+
 volumes:
   backend-data:
     name: storyquest-data
+  tts-cache:
+    name: storyquest-tts-cache
 
 networks:
   storyquest-network:
