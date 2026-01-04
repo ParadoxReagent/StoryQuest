@@ -499,6 +499,194 @@ body {
 }
 
 /* ========================================
+   AGE SLIDER - STORYBOOK STYLE
+   Hand-drawn ink track with wax seal thumb
+   ======================================== */
+.age-slider-container {
+  position: relative;
+  width: 100%;
+  padding: 0.5rem 0;
+}
+
+.age-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+/* Track - Hand-drawn ink line effect */
+.age-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 4px;
+  background:
+    linear-gradient(90deg,
+      transparent 0%,
+      var(--ink-dark) 2%,
+      var(--ink-primary) 10%,
+      var(--ink-dark) 15%,
+      var(--ink-primary) 25%,
+      var(--ink-dark) 35%,
+      var(--ink-primary) 50%,
+      var(--ink-dark) 65%,
+      var(--ink-primary) 75%,
+      var(--ink-dark) 85%,
+      var(--ink-primary) 90%,
+      var(--ink-dark) 98%,
+      transparent 100%
+    );
+  border-radius: 2px;
+  position: relative;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 0 4px rgba(74, 60, 49, 0.2);
+}
+
+.age-slider::-moz-range-track {
+  width: 100%;
+  height: 4px;
+  background:
+    linear-gradient(90deg,
+      transparent 0%,
+      var(--ink-dark) 2%,
+      var(--ink-primary) 10%,
+      var(--ink-dark) 15%,
+      var(--ink-primary) 25%,
+      var(--ink-dark) 35%,
+      var(--ink-primary) 50%,
+      var(--ink-dark) 65%,
+      var(--ink-primary) 75%,
+      var(--ink-dark) 85%,
+      var(--ink-primary) 90%,
+      var(--ink-dark) 98%,
+      transparent 100%
+    );
+  border-radius: 2px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 0 4px rgba(74, 60, 49, 0.2);
+}
+
+/* Thumb - Wax Seal Design */
+.age-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  margin-top: -12px;
+  background:
+    radial-gradient(circle at 35% 35%,
+      #c41e3a 0%,
+      #8b1538 30%,
+      #6b1030 60%,
+      #4a0a20 100%
+    );
+  border-radius: 50%;
+  cursor: grab;
+  border: 2px solid var(--gold-primary);
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 215, 0, 0.3),
+    inset 0 2px 4px rgba(255, 255, 255, 0.2),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.age-slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  background:
+    radial-gradient(circle at 35% 35%,
+      #c41e3a 0%,
+      #8b1538 30%,
+      #6b1030 60%,
+      #4a0a20 100%
+    );
+  border-radius: 50%;
+  cursor: grab;
+  border: 2px solid var(--gold-primary);
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 215, 0, 0.3),
+    inset 0 2px 4px rgba(255, 255, 255, 0.2),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+/* Hover state */
+.age-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    0 0 15px rgba(197, 165, 114, 0.4),
+    inset 0 2px 4px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.age-slider::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    0 0 15px rgba(197, 165, 114, 0.4),
+    inset 0 2px 4px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Active/dragging state */
+.age-slider::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(197, 165, 114, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.age-slider::-moz-range-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(197, 165, 114, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Focus state for accessibility */
+.age-slider:focus {
+  outline: none;
+}
+
+.age-slider:focus::-webkit-slider-thumb {
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.4),
+    0 0 0 3px rgba(197, 165, 114, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.2),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.age-slider:focus::-moz-range-thumb {
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.4),
+    0 0 0 3px rgba(197, 165, 114, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.2),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Slider markers (min/max labels) */
+.age-slider-markers {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0.25rem 0;
+}
+
+/* ========================================
    THEME CARD - STORYBOOK STYLE
    ======================================== */
 .theme-card-storybook {

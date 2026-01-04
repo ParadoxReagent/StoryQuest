@@ -138,18 +138,41 @@ const OrnateBorder = ({ children, className = '' }: { children: React.ReactNode;
 );
 
 // ============================================
+// AGE SLIDER HELPER
+// ============================================
+interface ReadingLevel {
+  label: string;
+  description: string;
+}
+
+const getReadingLevel = (age: number): ReadingLevel => {
+  if (age <= 7) return { label: 'Early Reader', description: 'Wonder & Friendship' };
+  if (age <= 10) return { label: 'Middle Reader', description: 'Action & Bravery' };
+  if (age <= 13) return { label: 'Tween', description: 'Moral Dilemmas' };
+  return { label: 'Young Adult', description: 'Complex Themes' };
+};
+
+const getAgeRangeFromAge = (age: number): string => {
+  if (age <= 7) return '5-7';
+  if (age <= 10) return '8-10';
+  if (age <= 13) return '11-13';
+  return '14-18';
+};
+
+// ============================================
 // CLOSED BOOK COMPONENT
 // ============================================
 interface ClosedBookProps {
   playerName: string;
   setPlayerName: (name: string) => void;
-  ageRange: string;
-  setAgeRange: (age: string) => void;
+  age: number;
+  setAge: (age: number) => void;
   onOpen: () => void;
   isValid: boolean;
 }
 
-const ClosedBook = ({ playerName, setPlayerName, ageRange, setAgeRange, onOpen, isValid }: ClosedBookProps) => {
+const ClosedBook = ({ playerName, setPlayerName, age, setAge, onOpen, isValid }: ClosedBookProps) => {
+  const readingLevel = getReadingLevel(age);
   return (
     <motion.div
       className="relative w-full max-w-md mx-auto"
@@ -216,35 +239,55 @@ const ClosedBook = ({ playerName, setPlayerName, ageRange, setAgeRange, onOpen, 
           </div>
         </motion.div>
 
-        {/* Bottom Section - Age Selection */}
+        {/* Bottom Section - Age Slider */}
         <motion.div
-          className="mb-6 md:mb-10 relative z-10 w-full"
+          className="mb-6 md:mb-10 relative z-10 w-full max-w-xs mx-auto px-4"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.7, duration: 0.6 }}
         >
-          <p className="text-center font-storybook-heading text-xs md:text-sm text-storybook-gold-400 uppercase tracking-widest mb-4">
-            Choose Your Age
-          </p>
-          <div className="flex justify-center gap-4 md:gap-8">
-            {[
-              { value: '3-6', label: '3-6' },
-              { value: '7-10', label: '7-10' },
-            ].map((age) => (
-              <motion.button
-                key={age.value}
-                onClick={() => setAgeRange(age.value)}
-                className={`age-badge w-16 h-16 md:w-20 md:h-20 flex items-center justify-center text-lg md:text-xl font-bold ${
-                  ageRange === age.value ? 'selected' : ''
-                }`}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                aria-label={`Age ${age.label} years`}
-                aria-pressed={ageRange === age.value}
-              >
-                {age.label}
-              </motion.button>
-            ))}
+          {/* Reading Level Display */}
+          <div className="text-center mb-4">
+            <motion.div
+              key={readingLevel.label}
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-block"
+            >
+              <span className="font-storybook-heading text-xs md:text-sm text-storybook-gold-400 uppercase tracking-widest">
+                Age {age}
+              </span>
+              <span className="mx-2 text-storybook-gold-600">•</span>
+              <span className="font-storybook-fancy text-sm md:text-base text-storybook-gold-300 italic">
+                {readingLevel.label}
+              </span>
+            </motion.div>
+            <motion.p
+              key={readingLevel.description}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="font-storybook-body text-xs text-storybook-parchment-400 mt-1"
+            >
+              {readingLevel.description}
+            </motion.p>
+          </div>
+
+          {/* Custom Slider */}
+          <div className="age-slider-container">
+            <input
+              type="range"
+              min={5}
+              max={18}
+              value={age}
+              onChange={(e) => setAge(parseInt(e.target.value, 10))}
+              className="age-slider"
+              aria-label={`Select age: ${age} years old, ${readingLevel.label}`}
+            />
+            {/* Slider Track Decorations */}
+            <div className="age-slider-markers">
+              <span className="text-storybook-gold-600 font-storybook-body text-xs">5</span>
+              <span className="text-storybook-gold-600 font-storybook-body text-xs">18</span>
+            </div>
           </div>
         </motion.div>
       </div>
@@ -786,7 +829,8 @@ export const StorybookApp = () => {
   // State
   const [bookState, setBookState] = useState<BookState>('closed');
   const [playerName, setPlayerName] = useState('');
-  const [ageRange, setAgeRange] = useState('3-6');
+  const [age, setAge] = useState(8);
+  const ageRange = getAgeRangeFromAge(age); // Derived from age for API calls
   const [themes, setThemes] = useState<ThemeOption[]>([]);
   const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
   const [themesLoading, setThemesLoading] = useState(false);
@@ -1162,8 +1206,8 @@ export const StorybookApp = () => {
               <ClosedBook
                 playerName={playerName}
                 setPlayerName={setPlayerName}
-                ageRange={ageRange}
-                setAgeRange={setAgeRange}
+                age={age}
+                setAge={setAge}
                 onOpen={handleOpenBook}
                 isValid={isNameValid}
               />

@@ -560,35 +560,188 @@ async def generate_themes(
             "from-violet-400 to-fuchsia-500",
         ]
 
-        # Create prompt for LLM to generate themes
-        age_label = "6-8 years old" if request.age_range == "6-8" else "9-12 years old"
-        prompt = f"""Generate 6 unique and exciting story themes for children aged {age_label}.
-Each theme should be:
-- Age-appropriate, safe, and positive
-- Adventurous and engaging
-- Different from each other
-- Suitable for an interactive story experience
+        # Create age-specific prompts with drastically different tones
+        age_range = request.age_range
 
-For each theme provide:
-1. A short, catchy name (2-4 words, title case)
-2. A brief, exciting description (one sentence, about 10-15 words)
-3. A single emoji that represents the theme
+        if age_range == "5-7":
+            age_label = "5-7 years old (Early Reader)"
+            age_guidance = """
+TONE: Wonder, friendship, gentle magic. NO scary elements whatsoever.
 
-Format your response as a JSON array with 6 objects, each having:
-- "name": the theme name
-- "description": the description
-- "emoji": a single emoji
+DEVELOPMENTAL CONTEXT FOR AGES 5-7:
+- Simple, magical thinking - they believe in the impossible
+- Love animals, friendly creatures, and nature
+- Short attention spans - themes should be immediately engaging
+- Need clear heroes and simple conflicts (lost toy, helping a friend)
+- Enjoy repetition and familiar scenarios with a twist
+- Respond to sensory details (colors, sounds, textures)
+- Love being helpers and feeling capable
 
-Example format:
-[
-  {{"name": "Space Adventure", "description": "Explore planets, stars, and meet friendly aliens!", "emoji": "🚀"}},
-  {{"name": "Magical Forest", "description": "Journey through an enchanted forest with magical creatures!", "emoji": "🌲"}}
-]
+GOOD THEME TYPES:
+- Friendly animal adventures (talking pets, forest friends)
+- Simple magical discoveries (finding a magic object)
+- Helping scenarios (rescuing a lost creature, making a friend)
+- Imaginative play (toys coming alive, pretend adventures)
+- Nature exploration (garden adventures, weather magic)
 
-Generate 6 completely new and creative themes now (do not use the examples above):"""
+ABSOLUTELY AVOID:
+- ANY scary elements, villains, or danger
+- Complex mysteries or puzzles
+- Abstract concepts
+- Long quests with multiple steps"""
 
-        system_message = """You are a creative children's storyteller who creates engaging, age-appropriate story themes.
-Your themes are always positive, safe, and exciting for children. You respond ONLY with valid JSON."""
+            examples = """[
+  {{"name": "Puppy's Lost Bone", "description": "Help a friendly puppy find their favorite bone in the sunny backyard!", "emoji": "🐕"}},
+  {{"name": "Rainbow Garden", "description": "Plant magical seeds and watch colorful flowers grow and dance!", "emoji": "🌈"}},
+  {{"name": "Teddy's Tea Party", "description": "Your stuffed animals come alive for a magical tea party!", "emoji": "🧸"}}
+]"""
+
+        elif age_range == "8-10":
+            age_label = "8-10 years old (Middle Reader)"
+            age_guidance = """
+TONE: Action, bravery, teamwork. Mild peril is okay but always resolved positively.
+
+DEVELOPMENTAL CONTEXT FOR AGES 8-10:
+- Developing logical thinking and problem-solving skills
+- Enjoy figuring things out and feeling clever
+- Can follow multi-step plots with cause and effect
+- Interested in how things work (science, nature, technology)
+- Developing sense of justice and fairness
+- Enjoy humor, wordplay, and mild mischief
+- Can handle mild tension and suspense (not horror)
+- Interested in friendship dynamics and teamwork
+
+GOOD THEME TYPES:
+- Mystery and detective stories (solving puzzles, finding clues)
+- Inventor/scientist adventures (building things, experiments)
+- Sports and competition themes (fair play, teamwork)
+- Time travel and history exploration
+- Secret societies and hidden worlds
+- Rescue missions with clever solutions
+- Treasure hunts with riddles
+
+AVOID:
+- Themes too babyish (they want to feel mature)
+- Romance or relationship drama
+- Real-world violence or serious danger
+- Horror or genuinely scary content"""
+
+            examples = """[
+  {{"name": "Code Breakers Club", "description": "Crack secret codes to uncover a mystery hidden in your school!", "emoji": "🔐"}},
+  {{"name": "Dinosaur Time Machine", "description": "Travel back 65 million years to study dinosaurs for a science fair!", "emoji": "🦖"}},
+  {{"name": "Storm Chasers Academy", "description": "Join a team of young meteorologists tracking a powerful storm!", "emoji": "🌪️"}}
+]"""
+
+        elif age_range == "11-13":
+            age_label = "11-13 years old (Tween)"
+            age_guidance = """
+TONE: Complex, morally nuanced, incorporates irony and sarcasm. Characters face real dilemmas.
+
+DEVELOPMENTAL CONTEXT FOR AGES 11-13:
+- Abstract thinking is developing - they appreciate irony, sarcasm, and subtext
+- Interested in social dynamics, fitting in, identity
+- Can handle moral complexity and characters making difficult choices
+- Enjoy stories where they feel smarter than the characters sometimes
+- Appreciate humor that's more sophisticated (not just silly)
+- Want to feel mature and respected
+- Interested in rebellion, questioning authority (in safe contexts)
+- Can handle darker themes when handled thoughtfully
+
+GOOD THEME TYPES:
+- Dystopian or alternate reality scenarios
+- Heist or elaborate scheme stories
+- Stories with unreliable narrators or plot twists
+- Social commentary wrapped in adventure
+- Characters who are flawed but relatable
+- Mysteries with real stakes and moral gray areas
+- Stories about outcasts or underdogs
+
+AVOID:
+- Anything that feels "preachy" or talks down to them
+- Overly simple good vs evil narratives
+- Childish themes or tone
+- Excessive hand-holding in the narrative"""
+
+            examples = """[
+  {{"name": "The Algorithm", "description": "A social media AI starts predicting your choices before you make them.", "emoji": "🤖"}},
+  {{"name": "Memory Thieves", "description": "Someone is stealing students' memories, and you might be next.", "emoji": "🧠"}},
+  {{"name": "The Last Locker", "description": "Your school's oldest locker hasn't been opened in 50 years. Until now.", "emoji": "🔓"}}
+]"""
+
+        else:  # 14-18 (Young Adult)
+            age_label = "14+ years old (Young Adult)"
+            age_guidance = """
+TONE: Young Adult (YA) novel style. Themes can be dark, psychological, or morally complex. Do not censor vocabulary complexity.
+
+DEVELOPMENTAL CONTEXT FOR AGES 14+:
+- Fully capable of abstract and philosophical thinking
+- Interested in identity, purpose, and big life questions
+- Can handle complex moral ambiguity and dark themes
+- Appreciate sophisticated narrative techniques
+- Want authentic, unflinching storytelling
+- Interested in psychology, motivation, and what drives people
+- Can handle unreliable narrators, time jumps, and complex structure
+- Appreciate when stories don't offer easy answers
+
+GOOD THEME TYPES:
+- Psychological thrillers and mind-bending narratives
+- Stories exploring identity, trauma, or personal growth
+- Dark fantasy with real consequences
+- Sci-fi that explores ethical dilemmas
+- Stories about power, corruption, and resistance
+- Complex relationship dynamics (not just romance)
+- Narratives that subvert genre expectations
+- Stories where the protagonist might be wrong
+
+ENCOURAGED:
+- Morally gray characters
+- Unflinching look at difficult topics
+- Sophisticated vocabulary and complex sentences
+- Subverted expectations and genre-bending
+- Dark humor and sharp wit"""
+
+            examples = """[
+  {{"name": "The Recursion", "description": "You keep waking up on the same day, but each loop reveals a darker truth about yourself.", "emoji": "♾️"}},
+  {{"name": "Bone Orchard", "description": "The town's memorial garden grows a new tree for every secret buried there.", "emoji": "🦴"}},
+  {{"name": "The Quiet Room", "description": "Patients check into the experimental therapy program. Not all of them check out.", "emoji": "🚪"}}
+]"""
+
+        prompt = f"""Generate 6 UNIQUE and CREATIVE story themes for children aged {age_label}.
+
+{age_guidance}
+
+REQUIREMENTS:
+- Each theme must be DISTINCTLY DIFFERENT in setting, genre, and activity
+- Avoid generic/overused themes (no basic "magical forest" or "space adventure" unless with a unique twist)
+- Themes should feel fresh and specific, not vague
+- Names should be catchy and memorable (2-4 words)
+- Descriptions should be action-oriented and exciting (10-15 words)
+
+DIVERSITY MANDATE:
+Generate themes from at least 4 different categories:
+- Adventure/Exploration
+- Mystery/Discovery
+- Creative/Building
+- Nature/Animals
+- Sports/Games
+- Fantasy/Magic
+- Science/Invention
+- Friendship/Helping
+
+Format as JSON array with 6 objects:
+- "name": theme name (Title Case)
+- "description": exciting one-sentence description
+- "emoji": single representative emoji
+
+Example format (DO NOT USE THESE - create entirely new themes):
+{examples}
+
+Generate 6 completely NEW and CREATIVE themes now:"""
+
+        system_message = f"""You are an expert children's storyteller and child development specialist creating themes for {age_label}.
+You deeply understand what captures children's imagination at this specific developmental stage.
+You create themes that are fresh, specific, and genuinely exciting - never generic or predictable.
+You respond ONLY with valid JSON - no other text."""
 
         # Call LLM to generate themes
         response_text = await llm_provider.generate_raw_json(
