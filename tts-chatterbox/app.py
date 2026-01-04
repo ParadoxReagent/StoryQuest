@@ -29,6 +29,11 @@ class TTSRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=5000, description="Text to synthesize")
     exaggeration: float = Field(default=0.5, ge=0.0, le=1.0, description="Emotion exaggeration level")
     cfg_weight: float = Field(default=0.5, ge=0.0, le=1.0, description="CFG weight for generation")
+    voice_audio: str | None = Field(default=None, description="Path to voice clone audio file (relative to /app/voices/)")
+
+
+# Directory for voice clone audio files
+VOICES_DIR = Path("/app/voices")
 
 
 class HealthResponse(BaseModel):
@@ -38,14 +43,14 @@ class HealthResponse(BaseModel):
     device: str
 
 
-def get_cache_path(text: str, exaggeration: float, cfg_weight: float) -> Path:
+def get_cache_path(text: str, exaggeration: float, cfg_weight: float, voice_audio: str | None) -> Path:
     """Generate a cache file path based on request parameters."""
     cache_dir = Path("/app/cache")
     cache_dir.mkdir(exist_ok=True)
 
-    # Create hash of parameters for cache key
+    # Create hash of parameters for cache key (include voice_audio in hash)
     cache_key = hashlib.md5(
-        f"{text}:{exaggeration}:{cfg_weight}".encode()
+        f"{text}:{exaggeration}:{cfg_weight}:{voice_audio or 'default'}".encode()
     ).hexdigest()
 
     return cache_dir / f"{cache_key}.wav"
@@ -114,13 +119,16 @@ async def synthesize_speech(request: TTSRequest):
     """
     Synthesize speech from text.
 
+    If voice_audio is provided, uses voice cloning from the specified audio file.
+    Audio files should be placed in the /app/voices/ directory (mounted via docker-compose).
+
     Returns audio as WAV file.
     """
     if tts_model is None:
         raise HTTPException(status_code=503, detail="TTS model not loaded")
 
     # Check cache first
-    cache_path = get_cache_path(request.text, request.exaggeration, request.cfg_weight)
+    cache_path = get_cache_path(request.text, request.exaggeration, request.cfg_weight, request.voice_audio)
 
     if cache_path.exists():
         logger.info(f"Cache hit for text: {request.text[:50]}...")
@@ -132,15 +140,38 @@ async def synthesize_speech(request: TTSRequest):
             headers={"Content-Disposition": "inline; filename=narration.wav"}
         )
 
-    logger.info(f"Generating speech for: {request.text[:50]}...")
+    # Load voice clone audio if specified
+    audio_prompt = None
+    if request.voice_audio:
+        voice_path = VOICES_DIR / request.voice_audio
+        if not voice_path.exists():
+            raise HTTPException(
+                status_code=400,
+                detail=f"Voice audio file not found: {request.voice_audio}. Place audio files in the voices/ directory."
+            )
+        logger.info(f"Using voice clone from: {request.voice_audio}")
+        try:
+            audio_prompt = ta.load(str(voice_path))
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Failed to load voice audio: {str(e)}")
+
+    logger.info(f"Generating speech for: {request.text[:50]}..." + (f" (voice: {request.voice_audio})" if request.voice_audio else ""))
 
     try:
-        # Generate audio
-        wav = tts_model.generate(
-            request.text,
-            exaggeration=request.exaggeration,
-            cfg_weight=request.cfg_weight,
-        )
+        # Generate audio (with optional voice cloning)
+        if audio_prompt is not None:
+            wav = tts_model.generate(
+                request.text,
+                audio_prompt=audio_prompt,
+                exaggeration=request.exaggeration,
+                cfg_weight=request.cfg_weight,
+            )
+        else:
+            wav = tts_model.generate(
+                request.text,
+                exaggeration=request.exaggeration,
+                cfg_weight=request.cfg_weight,
+            )
 
         # Save to buffer
         buffer = io.BytesIO()

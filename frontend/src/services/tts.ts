@@ -1,15 +1,13 @@
 /**
  * TTS Service Client for StoryQuest
- * Connects to the Chatterbox TTS Docker service for story narration
+ * Connects to TTS Docker service (Kokoro or Chatterbox) for story narration
+ *
+ * Configuration is centralized in: src/config/tts.config.ts
  */
 
-const TTS_BASE_URL = import.meta.env.VITE_TTS_URL || 'http://localhost:8001';
+import { getTTSRequestBody } from '../config/tts.config';
 
-export interface TTSRequest {
-  text: string;
-  exaggeration?: number;  // 0.0-1.0, emotion level
-  cfg_weight?: number;    // 0.0-1.0, generation weight
-}
+const TTS_BASE_URL = import.meta.env.VITE_TTS_URL || 'http://localhost:8001';
 
 export interface TTSHealthResponse {
   status: string;
@@ -31,18 +29,15 @@ export async function checkTTSHealth(): Promise<TTSHealthResponse> {
 /**
  * Generate speech audio from text
  * Returns a blob URL that can be used with an audio element
+ * Uses settings from src/config/tts.config.ts
  */
-export async function synthesizeSpeech(request: TTSRequest): Promise<string> {
+export async function synthesizeSpeech(text: string): Promise<string> {
   const response = await fetch(`${TTS_BASE_URL}/synthesize`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      text: request.text,
-      exaggeration: request.exaggeration ?? 0.5,
-      cfg_weight: request.cfg_weight ?? 0.5,
-    }),
+    body: JSON.stringify(getTTSRequestBody(text)),
   });
 
   if (!response.ok) {
@@ -74,6 +69,7 @@ export class TTSPlayer {
 
   /**
    * Play narration for the given text
+   * Uses voice settings from src/config/tts.config.ts
    */
   async play(text: string): Promise<void> {
     // Stop any existing playback
@@ -82,8 +78,8 @@ export class TTSPlayer {
     this.updateState({ isLoading: true, isPlaying: false, error: null });
 
     try {
-      // Generate audio
-      const blobUrl = await synthesizeSpeech({ text });
+      // Generate audio using settings from config
+      const blobUrl = await synthesizeSpeech(text);
       this.currentBlobUrl = blobUrl;
 
       // Create and configure audio element

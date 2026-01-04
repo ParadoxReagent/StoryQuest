@@ -138,6 +138,7 @@ services:
   #     - PYTHONUNBUFFERED=1
   #   volumes:
   #     - tts-cache:/app/cache
+  #     - ./tts-chatterbox/voices:/app/voices  # Voice clone audio files
   #   networks:
   #     - storyquest-network
   #   restart: unless-stopped

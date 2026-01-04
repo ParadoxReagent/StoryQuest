@@ -54,3 +54,4 @@ logs/
 
 # Docker
 *.log
+CLAUDE.md
