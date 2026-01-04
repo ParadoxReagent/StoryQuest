@@ -527,7 +527,7 @@ interface GameplayViewProps {
 
 const GameplayView: React.FC<GameplayViewProps> = ({
   story,
-  streamingText,
+  streamingText: _streamingText, // Not displayed - we wait for complete text
   isStreaming,
   isLoading,
   history,
@@ -536,8 +536,23 @@ const GameplayView: React.FC<GameplayViewProps> = ({
   onNewStory,
 }) => {
   const [customInput, setCustomInput] = useState('');
-  const displayText = isStreaming ? streamingText : story.current_scene.text;
+  const [revealedSceneId, setRevealedSceneId] = useState<string | null>(null);
   const isFinished = story.metadata?.is_finished;
+
+  // Track scene changes to trigger magical reveal
+  const currentSceneId = story.current_scene.scene_id;
+  const shouldShowText = !isLoading && !isStreaming && revealedSceneId === currentSceneId;
+
+  // Trigger reveal animation when streaming completes
+  useEffect(() => {
+    if (!isLoading && !isStreaming && currentSceneId !== revealedSceneId) {
+      // Small delay before starting reveal for dramatic effect
+      const timer = setTimeout(() => {
+        setRevealedSceneId(currentSceneId);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, isStreaming, currentSceneId, revealedSceneId]);
 
   // TTS state management
   const [ttsState, setTtsState] = useState<TTSPlaybackState>(initialTTSState);
@@ -619,28 +634,62 @@ const GameplayView: React.FC<GameplayViewProps> = ({
 
       {/* Story text */}
       <div className="flex-1 overflow-y-auto storybook-scroll">
-        <motion.div
-          key={story.current_scene.scene_id}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="font-storybook-body text-base md:text-lg lg:text-xl text-storybook-ink-900 leading-relaxed"
-        >
-          {displayText.split('\n').map((paragraph, i) => (
-            <p key={i} className="mb-4 first-letter:text-3xl first-letter:font-storybook-title first-letter:text-storybook-leather-800 first-letter:float-left first-letter:mr-2">
-              {paragraph}
+        {/* Loading/Streaming state - show magical quill animation */}
+        {(isLoading || isStreaming || !shouldShowText) && (
+          <div className="h-full flex flex-col items-center justify-center text-center py-8">
+            <motion.div
+              className="text-5xl md:text-6xl mb-4"
+              animate={{
+                rotate: [0, 5, -5, 0],
+                y: [0, -5, 0]
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            >
+              ✒️
+            </motion.div>
+            <p className="font-storybook-fancy text-base md:text-lg text-storybook-ink-600 italic">
+              The story unfolds...
             </p>
-          ))}
-        </motion.div>
-
-        {/* Loading indicator */}
-        {isLoading && !isStreaming && (
-          <div className="flex justify-center mt-4">
-            <div className="storybook-loading">
+            <div className="storybook-loading mt-4">
               <span />
               <span />
               <span />
             </div>
           </div>
+        )}
+
+        {/* Revealed story text with magical fade-in */}
+        {shouldShowText && (
+          <motion.div
+            key={story.current_scene.scene_id}
+            initial={{ opacity: 0, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, filter: 'blur(0px)' }}
+            transition={{
+              duration: 1.2,
+              ease: [0.25, 0.46, 0.45, 0.94],
+            }}
+            className="font-storybook-body text-base md:text-lg lg:text-xl text-storybook-ink-900 leading-relaxed story-text-reveal"
+          >
+            {story.current_scene.text.split('\n').map((paragraph, i) => (
+              <motion.p
+                key={i}
+                className="mb-4 first-letter:text-3xl first-letter:font-storybook-title first-letter:text-storybook-leather-800 first-letter:float-left first-letter:mr-2"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.8,
+                  delay: 0.3 + (i * 0.15),
+                  ease: "easeOut"
+                }}
+              >
+                {paragraph}
+              </motion.p>
+            ))}
+          </motion.div>
         )}
       </div>
 

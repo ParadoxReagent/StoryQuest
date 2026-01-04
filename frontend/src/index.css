@@ -140,6 +140,50 @@ body {
 }
 
 /* ========================================
+   MAGICAL TEXT REVEAL
+   ======================================== */
+.story-text-reveal {
+  position: relative;
+  overflow: hidden; /* Contain the shimmer effect */
+}
+
+/* Golden shimmer effect that sweeps across revealed text */
+.story-text-reveal::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(228, 185, 79, 0.15) 25%,
+    rgba(228, 185, 79, 0.3) 50%,
+    rgba(228, 185, 79, 0.15) 75%,
+    transparent 100%
+  );
+  animation: shimmer-sweep 1.5s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes shimmer-sweep {
+  0% {
+    left: -100%;
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+/* Subtle glow on first letters during reveal */
+.story-text-reveal p:first-child::first-letter {
+  text-shadow: 0 0 20px rgba(228, 185, 79, 0.5);
+}
+
+/* ========================================
    3D BOOK STYLES
    ======================================== */
 .book-container {
@@ -786,6 +830,11 @@ body {
 /* ========================================
    SCROLLBAR STYLING
    ======================================== */
+.storybook-scroll {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 .storybook-scroll::-webkit-scrollbar {
   width: 8px;
 }
