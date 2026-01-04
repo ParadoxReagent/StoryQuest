@@ -2,7 +2,7 @@
 
 **An AI-powered interactive storytelling adventure for kids**
 
-StoryQuest is a safe, creative, and educational storytelling platform where children aged 6-12 become the heroes of their own AI-generated adventures. Choose from magical themes, make decisions that shape the story, and watch your imagination come to life through the power of Large Language Models.
+StoryQuest is a safe, creative, and educational storytelling platform where children aged 6-18 become the heroes of their own AI-generated adventures. Choose from magical themes, make decisions that shape the story, and watch your imagination come to life through the power of Large Language Models.
 
 ---
 
@@ -21,7 +21,7 @@ StoryQuest is a safe, creative, and educational storytelling platform where chil
 
 ### 🛡️ **Advanced Safety System**
 - **Multi-Layer Content Filtering**: Comprehensive banned word list and sentiment analysis
-- **Age-Appropriate Content**: Separate modes for ages 6-8 and 9-12
+- **Age-Appropriate Content**: Mode for each age selection
 - **Rate Limiting**: Prevents abuse with session, IP, and custom input limits
 - **Moderation API**: Optional OpenAI Moderation API integration
 - **Violation Tracking**: Admin dashboard for monitoring and compliance
