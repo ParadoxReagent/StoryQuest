@@ -353,7 +353,7 @@ const OpenBook = ({ leftContent, rightContent, onNewStory, showNewStoryButton }:
         {/* Right Page */}
         <div className="book-page right-page flex-1 min-h-[500px] lg:min-h-[600px] p-6 lg:p-10">
           <div className="page-edge" />
-          <div className="relative h-full overflow-y-auto storybook-scroll pr-4">
+          <div className="relative h-full overflow-y-auto storybook-scroll pl-2 pr-4">
             {rightContent}
           </div>
         </div>
@@ -537,6 +537,7 @@ const GameplayView: React.FC<GameplayViewProps> = ({
 }) => {
   const [customInput, setCustomInput] = useState('');
   const [revealedSceneId, setRevealedSceneId] = useState<string | null>(null);
+  const [showChoices, setShowChoices] = useState(false);
   const isFinished = story.metadata?.is_finished;
 
   // Track scene changes to trigger magical reveal
@@ -546,6 +547,8 @@ const GameplayView: React.FC<GameplayViewProps> = ({
   // Trigger reveal animation when streaming completes
   useEffect(() => {
     if (!isLoading && !isStreaming && currentSceneId !== revealedSceneId) {
+      // Reset choices visibility for new scene
+      setShowChoices(false);
       // Small delay before starting reveal for dramatic effect
       const timer = setTimeout(() => {
         setRevealedSceneId(currentSceneId);
@@ -553,6 +556,18 @@ const GameplayView: React.FC<GameplayViewProps> = ({
       return () => clearTimeout(timer);
     }
   }, [isLoading, isStreaming, currentSceneId, revealedSceneId]);
+
+  // Show choices after story text has faded in (delay matches text reveal duration)
+  useEffect(() => {
+    if (shouldShowText && !showChoices) {
+      // Wait for story text to fully reveal before showing choices
+      // Story reveal: 1.2s base + ~0.5s for paragraph staggers
+      const timer = setTimeout(() => {
+        setShowChoices(true);
+      }, 1800);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldShowText, showChoices]);
 
   // TTS state management
   const [ttsState, setTtsState] = useState<TTSPlaybackState>(initialTTSState);
@@ -719,9 +734,19 @@ const GameplayView: React.FC<GameplayViewProps> = ({
   // Right page content - choices
   const rightPageContent = (
     <div className="h-full flex flex-col">
-      <h3 className="font-storybook-heading text-lg md:text-xl text-storybook-ink-900 text-center mb-4">
-        {isFinished ? 'The End' : 'What will you do?'}
-      </h3>
+      <AnimatePresence mode="wait">
+        {(isFinished || showChoices) && (
+          <motion.h3
+            key={isFinished ? 'end' : 'choices'}
+            className="font-storybook-heading text-lg md:text-xl text-storybook-ink-900 text-center mb-4"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            {isFinished ? 'The End' : 'What will you do?'}
+          </motion.h3>
+        )}
+      </AnimatePresence>
 
       {isFinished ? (
         <div className="flex-1 flex flex-col items-center justify-center text-center">
@@ -749,53 +774,78 @@ const GameplayView: React.FC<GameplayViewProps> = ({
         </div>
       ) : (
         <>
-          {/* Choice buttons */}
+          {/* Choice buttons - fade in after story text reveals */}
           <div className="flex-1 space-y-3">
-            {story.choices.map((choice, index) => (
-              <motion.button
-                key={choice.choice_id}
-                onClick={() => onChoice(choice)}
-                disabled={isLoading}
-                className="storybook-choice w-full text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 * index }}
-                whileHover={!isLoading ? { scale: 1.02 } : undefined}
-                whileTap={!isLoading ? { scale: 0.98 } : undefined}
-              >
-                <span className="font-storybook-body text-sm md:text-base">
-                  {choice.text}
-                </span>
-              </motion.button>
-            ))}
+            <AnimatePresence>
+              {showChoices && story.choices.map((choice, index) => (
+                <motion.button
+                  key={choice.choice_id}
+                  onClick={() => onChoice(choice)}
+                  disabled={isLoading}
+                  className="storybook-choice w-full text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.5,
+                    delay: 0.15 * index,
+                    ease: [0.25, 0.46, 0.45, 0.94]
+                  }}
+                >
+                  <span className="font-storybook-body text-sm md:text-base">
+                    {choice.text}
+                  </span>
+                </motion.button>
+              ))}
+            </AnimatePresence>
+            {/* Placeholder while waiting for choices to appear */}
+            {!showChoices && (
+              <div className="flex-1 flex items-center justify-center py-8 opacity-50">
+                <p className="font-storybook-fancy text-sm text-storybook-ink-500 italic">
+                  Your choices await...
+                </p>
+              </div>
+            )}
           </div>
 
-          {/* Custom input */}
-          <div className="mt-4 pt-4 border-t border-storybook-gold-300/30">
-            <label className="block font-storybook-heading text-xs text-storybook-ink-600 uppercase tracking-wider mb-2">
-              Or write your own action...
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={customInput}
-                onChange={(e) => setCustomInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleCustomSubmit()}
-                disabled={isLoading}
-                placeholder="What do you do?"
-                className="flex-1 px-3 py-2 rounded-lg border-2 border-storybook-gold-400 bg-storybook-parchment-100 font-storybook-body text-sm text-storybook-ink-900 placeholder-storybook-ink-400 focus:outline-none focus:border-storybook-gold-500 disabled:opacity-50"
-              />
-              <motion.button
-                onClick={handleCustomSubmit}
-                disabled={isLoading || !customInput.trim()}
-                className="px-4 py-2 rounded-lg bg-storybook-forest-700 text-storybook-gold-300 font-storybook-heading text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+          {/* Custom input - also fades in with choices */}
+          <AnimatePresence>
+            {showChoices && (
+              <motion.div
+                className="mt-4 pt-4 border-t border-storybook-gold-300/30"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.5,
+                  delay: 0.15 * story.choices.length,
+                  ease: "easeOut"
+                }}
               >
-                Go
-              </motion.button>
-            </div>
-          </div>
+                <label className="block font-storybook-heading text-xs text-storybook-ink-600 uppercase tracking-wider mb-2">
+                  Or write your own action...
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customInput}
+                    onChange={(e) => setCustomInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleCustomSubmit()}
+                    disabled={isLoading}
+                    placeholder="What do you do?"
+                    className="flex-1 px-3 py-2 rounded-lg border-2 border-storybook-gold-400 bg-storybook-parchment-100 font-storybook-body text-sm text-storybook-ink-900 placeholder-storybook-ink-400 focus:outline-none focus:border-storybook-gold-500 disabled:opacity-50"
+                  />
+                  <motion.button
+                    onClick={handleCustomSubmit}
+                    disabled={isLoading || !customInput.trim()}
+                    className="px-4 py-2 rounded-lg bg-storybook-forest-700 text-storybook-gold-300 font-storybook-heading text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Go
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </>
       )}
 
