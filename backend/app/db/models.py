@@ -6,7 +6,7 @@ Phase 3: Core Story Engine Backend
 from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, TypeDecorator
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index, Integer, String, Text, TypeDecorator
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -69,6 +69,12 @@ class Session(Base):
     turns = Column(Integer, default=0, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
 
+    # Performance indexes for common query patterns
+    __table_args__ = (
+        Index('idx_session_active_created', 'is_active', 'created_at'),
+        Index('idx_session_last_activity', 'last_activity'),
+    )
+
     # Relationship to story turns
     story_turns = relationship("StoryTurn", back_populates="session", cascade="all, delete-orphan")
 
@@ -99,6 +105,12 @@ class StoryTurn(Base):
     custom_input = Column(Text, nullable=True)
     story_summary = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    # Performance: Composite index for common query pattern (get turns by session, ordered)
+    __table_args__ = (
+        Index('idx_turn_session_number', 'session_id', 'turn_number'),
+        Index('idx_turn_session_created', 'session_id', 'created_at'),
+    )
 
     # Relationship to session
     session = relationship("Session", back_populates="story_turns")

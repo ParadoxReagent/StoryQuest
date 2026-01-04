@@ -23,9 +23,10 @@ interface Turn {
 }
 
 // ============================================
-// SPARKLE COMPONENT
+// SPARKLE COMPONENT (CSS-only for GPU performance)
 // ============================================
 const Sparkles = ({ count = 20 }: { count?: number }) => {
+  // Memoize sparkle positions - only recalculate if count changes
   const sparkles = useMemo(() =>
     Array.from({ length: count }, (_, i) => ({
       id: i,
@@ -40,27 +41,16 @@ const Sparkles = ({ count = 20 }: { count?: number }) => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {sparkles.map((sparkle) => (
-        <motion.div
+        <div
           key={sparkle.id}
-          className="absolute rounded-full"
+          className="sparkle-particle absolute rounded-full"
           style={{
             left: sparkle.left,
             top: sparkle.top,
             width: sparkle.size,
             height: sparkle.size,
-            background: 'radial-gradient(circle, #e4b94f 0%, #c5a572 50%, transparent 70%)',
-            boxShadow: '0 0 10px #e4b94f, 0 0 20px #c5a572',
-          }}
-          animate={{
-            opacity: [0, 1, 1, 0],
-            scale: [0.5, 1, 1.2, 0.5],
-            y: [0, -30, -60, -100],
-          }}
-          transition={{
-            duration: sparkle.duration,
-            delay: sparkle.delay,
-            repeat: Infinity,
-            ease: 'easeInOut',
+            animationDelay: `${sparkle.delay}s`,
+            animationDuration: `${sparkle.duration}s`,
           }}
         />
       ))}
@@ -840,6 +830,11 @@ export const StorybookApp = () => {
   const [streamingText, setStreamingText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
 
+  // Performance: Throttle streaming updates to reduce re-renders
+  const streamingBufferRef = useRef('');
+  const lastUpdateTimeRef = useRef(0);
+  const STREAMING_THROTTLE_MS = 50; // Update UI every 50ms max
+
   const isNameValid = playerName.trim().length > 0;
 
   // Fetch themes when opening book
@@ -913,10 +908,17 @@ export const StorybookApp = () => {
             },
             onTextChunk: (chunk) => {
               accumulatedText += chunk;
-              const sceneText = extractSceneTextFromStream(accumulatedText);
-              if (sceneText) {
-                setIsStreaming(true);
-                setStreamingText(sceneText);
+              streamingBufferRef.current = accumulatedText;
+
+              // Throttle UI updates to reduce re-renders
+              const now = Date.now();
+              if (now - lastUpdateTimeRef.current >= STREAMING_THROTTLE_MS) {
+                const sceneText = extractSceneTextFromStream(accumulatedText);
+                if (sceneText) {
+                  setIsStreaming(true);
+                  setStreamingText(sceneText);
+                  lastUpdateTimeRef.current = now;
+                }
               }
             },
             onComplete: (choices, metadata, sceneText, storySummary) => {
@@ -1006,10 +1008,17 @@ export const StorybookApp = () => {
         {
           onTextChunk: (chunk) => {
             accumulatedText += chunk;
-            const sceneText = extractSceneTextFromStream(accumulatedText);
-            if (sceneText) {
-              setIsStreaming(true);
-              setStreamingText(sceneText);
+            streamingBufferRef.current = accumulatedText;
+
+            // Throttle UI updates to reduce re-renders
+            const now = Date.now();
+            if (now - lastUpdateTimeRef.current >= STREAMING_THROTTLE_MS) {
+              const sceneText = extractSceneTextFromStream(accumulatedText);
+              if (sceneText) {
+                setIsStreaming(true);
+                setStreamingText(sceneText);
+                lastUpdateTimeRef.current = now;
+              }
             }
           },
           onComplete: (choices, metadata, sceneText, storySummary) => {
@@ -1088,10 +1097,17 @@ export const StorybookApp = () => {
         {
           onTextChunk: (chunk) => {
             accumulatedText += chunk;
-            const sceneText = extractSceneTextFromStream(accumulatedText);
-            if (sceneText) {
-              setIsStreaming(true);
-              setStreamingText(sceneText);
+            streamingBufferRef.current = accumulatedText;
+
+            // Throttle UI updates to reduce re-renders
+            const now = Date.now();
+            if (now - lastUpdateTimeRef.current >= STREAMING_THROTTLE_MS) {
+              const sceneText = extractSceneTextFromStream(accumulatedText);
+              if (sceneText) {
+                setIsStreaming(true);
+                setStreamingText(sceneText);
+                lastUpdateTimeRef.current = now;
+              }
             }
           },
           onComplete: (choices, metadata, sceneText, storySummary) => {

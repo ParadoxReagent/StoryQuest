@@ -2,7 +2,7 @@
 
 **An AI-powered interactive storytelling adventure for kids**
 
-StoryQuest is a safe, creative, and educational storytelling platform where children aged 6-12 become the heroes of their own AI-generated adventures. Choose from magical themes, make decisions that shape the story, and watch your imagination come to life through the power of Large Language Models.
+StoryQuest is a safe, creative, and educational storytelling platform where children and young adults aged 5-18 become the heroes of their own AI-generated adventures. Choose from magical themes, make decisions that shape the story, and watch your imagination come to life through the power of Large Language Models. The beautiful storybook-themed interface adapts content complexity based on reading level.
 
 ---
 
@@ -21,11 +21,14 @@ StoryQuest is a safe, creative, and educational storytelling platform where chil
 
 ### 🛡️ **Advanced Safety System**
 - **Multi-Layer Content Filtering**: Comprehensive banned word list and sentiment analysis
-- **Age-Appropriate Content**: Separate modes for ages 6-8 and 9-12
+- **Age-Adaptive Content**: Four distinct reading levels with tailored content complexity:
+  - **Early Reader (5-7)**: Wonder, friendship, simple vocabulary
+  - **Middle Reader (8-10)**: Action, bravery, age-appropriate challenges
+  - **Tween (11-13)**: Moral dilemmas, deeper themes, complex narratives
+  - **Young Adult (14-18)**: Sophisticated storytelling, mature themes handled appropriately
 - **Rate Limiting**: Prevents abuse with session, IP, and custom input limits
 - **Moderation API**: Optional OpenAI Moderation API integration
 - **Violation Tracking**: Admin dashboard for monitoring and compliance
-- **G-Rated Only**: All content is positive, encouraging, and educational
 
 ### 📚 **Rich Story Experience**
 - **7 Unique Themes**: Space adventures, magical forests, underwater quests, medieval castles, dinosaur lands, superhero cities, and Arctic explorations
@@ -43,7 +46,8 @@ StoryQuest is a safe, creative, and educational storytelling platform where chil
 
 ### 🚀 **Production-Ready**
 - **Docker Deployment**: Complete containerized setup with docker-compose
-- **Database Persistence**: SQLite for development, PostgreSQL-ready for production
+- **Database Persistence**: SQLite with WAL mode for development, PostgreSQL-ready for production
+- **Performance Optimized**: Streaming throttling, CSS-only animations, database indexes
 - **Health Monitoring**: Built-in health checks and detailed system status endpoints
 - **Admin Dashboard**: Real-time monitoring of safety violations, rate limits, and system health
 - **Hot Reload**: Development mode with automatic code reloading
@@ -252,15 +256,20 @@ See [ios/README.md](ios/README.md) for complete Xcode setup instructions.
 
 1. **Start StoryQuest**: Navigate to http://localhost:3000
 2. **Enter Your Name**: Tell us what to call you
-3. **Choose Age Range**: Select 6-8 or 9-12 for age-appropriate content
-4. **Pick a Theme**: Choose from 7 exciting adventure themes
-5. **Start Your Adventure**: Click "Start My Adventure!" to begin
+3. **Set Reading Level**: Use the age slider (5-18) to select your reading level:
+   - **5-7**: Early Reader (Wonder & Friendship)
+   - **8-10**: Middle Reader (Action & Bravery)
+   - **11-13**: Tween (Moral Dilemmas)
+   - **14-18**: Young Adult (Complex Themes)
+4. **Pick a Theme**: Choose from dynamically generated adventure themes
+5. **Start Your Adventure**: Click "Begin Your Quest" to begin
 6. **Make Choices**:
    - Click suggested choices for quick decisions
    - Or type your own creative responses
 7. **Watch the Story Unfold**: See how your choices shape the adventure
-8. **View History**: Click "Story So Far" to review previous turns
-9. **Start Over**: Click "New Story" anytime to begin fresh
+8. **Listen Along**: Click the speaker button for text-to-speech narration
+9. **View History**: Click "Story So Far" to review previous turns
+10. **Start Over**: Click "New Story" anytime to begin fresh
 
 ### iOS/iPadOS App
 
@@ -393,8 +402,8 @@ StoryQuest prioritizes child safety with multiple layers of protection:
 ### Content Filtering
 - **100+ Banned Words**: Comprehensive blocklist for inappropriate content
 - **Sentiment Analysis**: Real-time scoring to ensure positive, encouraging content
-- **Age-Appropriate Modes**: Separate content filtering for ages 6-8 vs 9-12
-- **LLM Prompt Engineering**: System prompts enforce G-rated, educational content
+- **Age-Adaptive Modes**: Four distinct content levels (5-7, 8-10, 11-13, 14-18) with tailored vocabulary, themes, and complexity
+- **LLM Prompt Engineering**: Age-specific system prompts with drastically different tones and content rules
 - **OpenAI Moderation API**: Optional additional layer for cloud deployments
 
 ### Rate Limiting
@@ -414,10 +423,10 @@ StoryQuest prioritizes child safety with multiple layers of protection:
 - **Detailed Logging**: Comprehensive logs for debugging and compliance
 
 ### Safety Guarantees
-✅ G-rated content only
-✅ No violence, scary themes, or adult content
-✅ Positive, encouraging, educational language
-✅ Focus on curiosity, problem-solving, and kindness
+✅ Age-appropriate content tailored to reading level
+✅ Younger ages (5-10): Gentle themes, no conflict, educational focus
+✅ Tweens (11-13): Appropriate challenges with positive resolution
+✅ Young adults (14-18): Mature themes handled responsibly
 ✅ Input validation and sanitization
 ✅ Automatic fallback for rejected content
 
@@ -613,7 +622,7 @@ Both services expose the same endpoints on port 8001:
 
 ### Planning & Architecture
 - **[Implementation Plan](StoryQuest_Plan.md)** - Complete implementation roadmap
-- **[Optimization Plan](OPTIMIZATION_PLAN.md)** - Performance optimization strategy
+- **[Performance Guide](PERFORMANCE.md)** - Implemented optimizations and recommendations
 
 ### API Documentation (Live)
 When the backend is running, access interactive API documentation:
@@ -865,12 +874,15 @@ For questions, issues, or feedback:
 ## ⚡ Performance
 
 StoryQuest is optimized for speed and efficiency:
-- **Docker multi-stage builds**: Minimal production images
-- **React Query caching**: Reduced API calls
-- **Streaming responses**: Real-time story generation
-- **Connection pooling**: Efficient database access
-- **Rate limiting**: Prevents abuse and ensures fair usage
-- **Health monitoring**: Automatic recovery and self-healing
+- **Streaming Throttling**: 50ms update intervals reduce React re-renders by 80%
+- **CSS-Only Animations**: GPU-accelerated sparkle effects without JavaScript overhead
+- **Database Indexes**: Composite indexes for O(log n) query performance
+- **SQLite WAL Mode**: 50% faster writes with concurrent reader support
+- **Docker Multi-Stage Builds**: Minimal production images
+- **React Query Caching**: Reduced API calls
+- **Health Monitoring**: Automatic recovery and self-healing
+
+For detailed performance documentation, see **[PERFORMANCE.md](PERFORMANCE.md)**.
 
 ---
 

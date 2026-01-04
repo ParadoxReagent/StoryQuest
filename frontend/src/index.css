@@ -111,6 +111,34 @@ body {
   }
 }
 
+/* Sparkle particle - GPU-accelerated CSS animation (no React re-renders) */
+.sparkle-particle {
+  background: radial-gradient(circle, #e4b94f 0%, #c5a572 50%, transparent 70%);
+  box-shadow: 0 0 10px #e4b94f, 0 0 20px #c5a572;
+  animation: sparkle-particle-float infinite ease-in-out;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+@keyframes sparkle-particle-float {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-30px) scale(1);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-60px) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100px) scale(0.5);
+  }
+}
+
 /* ========================================
    3D BOOK STYLES
    ======================================== */

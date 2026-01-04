@@ -7,7 +7,7 @@ import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -15,6 +15,23 @@ from app.config import DatabaseConfig
 from app.db.models import Base
 
 logger = logging.getLogger(__name__)
+
+
+def _set_sqlite_pragmas(dbapi_conn, connection_record):
+    """
+    Set SQLite performance pragmas when a connection is established.
+    WAL mode improves concurrent read/write performance significantly.
+    """
+    cursor = dbapi_conn.cursor()
+    # WAL mode for better concurrency (multiple readers + 1 writer)
+    cursor.execute("PRAGMA journal_mode=WAL")
+    # NORMAL sync is faster than FULL but still safe (data survives OS crash)
+    cursor.execute("PRAGMA synchronous=NORMAL")
+    # Use memory for temp tables (faster joins/sorts)
+    cursor.execute("PRAGMA temp_store=MEMORY")
+    # 64MB cache size for better read performance
+    cursor.execute("PRAGMA cache_size=-64000")
+    cursor.close()
 
 
 class Database:
@@ -41,6 +58,10 @@ class Database:
                 echo=config.echo,
                 connect_args={"check_same_thread": False}  # Required for SQLite
             )
+            # Enable SQLite performance pragmas (WAL mode, etc.)
+            event.listen(self.engine, "connect", _set_sqlite_pragmas)
+            logger.info("SQLite WAL mode and performance pragmas enabled")
+
             self.session_factory = sessionmaker(
                 bind=self.engine,
                 autocommit=False,

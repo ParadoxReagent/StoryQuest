@@ -130,20 +130,18 @@ The backend automatically connects to Ollama running on your host machine.
 
 1. Open http://localhost:3000
 2. Enter your name
-3. Select your age range (6-8 or 9-12)
-4. Choose an adventure theme:
-   - 🚀 Space Adventure
-   - 🌲 Magical Forest
-   - 🌊 Underwater Quest
-   - 🦕 Dinosaur Discovery
-   - 🏰 Castle Quest
-   - 🤖 Robot City
-5. Click "Start My Adventure!"
+3. Use the age slider (5-18) to set your reading level:
+   - **5-7**: Early Reader (Wonder & Friendship)
+   - **8-10**: Middle Reader (Action & Bravery)
+   - **11-13**: Tween (Moral Dilemmas)
+   - **14-18**: Young Adult (Complex Themes)
+4. Choose from the generated adventure themes
+5. Click "Begin Your Quest!"
 
 ### Playing
 
-1. Read the scene description
-2. Choose one of the 3 suggested options, or type your own idea
+1. Read the scene description (or click the speaker button for narration)
+2. Choose one of the suggested options, or type your own idea
 3. Watch the story continue based on your choice!
 4. Click "Story So Far" to review your adventure
 5. Click "New Story" to start over

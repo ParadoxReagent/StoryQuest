@@ -12,13 +12,16 @@ Interactive web UI for the StoryQuest kids' text adventure game.
 
 ## Features
 
-- 🎨 Kid-friendly, colorful interface
-- 🎮 Multiple adventure themes to choose from
+- 🎨 Beautiful storybook-themed interface with fantasy aesthetics
+- 🎚️ Age slider (5-18) with four reading levels
+- 🎮 Dynamically generated adventure themes
 - ⌨️ Support for both suggested choices and custom input
+- 🔊 Text-to-speech narration (Kokoro/Chatterbox TTS)
 - 📖 Collapsible story history
 - 🔄 Loading states and error handling
 - ♿ Accessibility features (ARIA labels, keyboard navigation)
 - 📱 Responsive design (mobile-friendly)
+- ⚡ Performance optimized (streaming throttling, CSS animations)
 
 ## Getting Started
 
@@ -148,20 +151,18 @@ frontend/
 
 1. **Start a New Story:**
    - Enter your name
-   - Select your age range (6-8 or 9-12)
-   - Choose an adventure theme:
-     - 🚀 Space Adventure
-     - 🌲 Magical Forest
-     - 🌊 Underwater Quest
-     - 🦕 Dinosaur Discovery
-     - 🏰 Castle Quest
-     - 🤖 Robot City
-   - Click "Start My Adventure!"
+   - Use the age slider (5-18) to set your reading level:
+     - **5-7**: Early Reader (Wonder & Friendship)
+     - **8-10**: Middle Reader (Action & Bravery)
+     - **11-13**: Tween (Moral Dilemmas)
+     - **14-18**: Young Adult (Complex Themes)
+   - Choose from the generated adventure themes
+   - Click "Begin Your Quest!"
 
 2. **Play the Story:**
-   - Read the scene text
+   - Read the scene text (or click the speaker button for narration)
    - Either:
-     - Click one of the 3 suggested choices, or
+     - Click one of the suggested choices, or
      - Type your own creative idea (max 200 characters)
    - The story continues based on your choice!
 
@@ -170,7 +171,7 @@ frontend/
    - Review what you've chosen and where the story has gone
 
 4. **Start Over:**
-   - Click the "New Story" button in the top right to begin a fresh adventure
+   - Click the "New Story" button to begin a fresh adventure
 
 ## Accessibility
 

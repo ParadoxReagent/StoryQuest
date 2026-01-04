@@ -90,16 +90,15 @@ If you want to use a local LLM:
 ## Step 4: Start Playing!
 
 1. Open http://localhost:3000 in your browser
-2. Enter your name and age range
-3. Pick an adventure theme:
-   - 🚀 Space Adventure
-   - 🌲 Magical Forest
-   - 🌊 Underwater Quest
-   - 🦕 Dinosaur Discovery
-   - 🏰 Castle Quest
-   - 🤖 Robot City
-4. Click "Start My Adventure!"
-5. Enjoy your interactive story!
+2. Enter your name
+3. Use the age slider (5-18) to set your reading level:
+   - **5-7**: Early Reader (Wonder & Friendship)
+   - **8-10**: Middle Reader (Action & Bravery)
+   - **11-13**: Tween (Moral Dilemmas)
+   - **14-18**: Young Adult (Complex Themes)
+4. Pick from the generated adventure themes
+5. Click "Begin Your Quest!"
+6. Enjoy your interactive story with optional text-to-speech narration!
 
 ## Troubleshooting
 

@@ -36,12 +36,13 @@ LLM-powered kids' text adventure game backend API.
 - ✅ **Phase 6: Enhanced Safety & Guardrails** - Complete
   - Comprehensive safety filter (100+ banned words)
   - Sentiment analysis for content validation
-  - Age-appropriate content filtering (6-8 vs 9-12)
+  - Age-adaptive content filtering with 4 distinct levels (5-7, 8-10, 11-13, 14-18)
+  - Drastically different LLM prompts per age range
   - Optional OpenAI Moderation API integration
   - Rate limiting (session, IP, custom input limits)
   - Violation tracking and logging
   - Admin endpoints for monitoring
-  - Enhanced LLM prompts with explicit safety rules
+  - Database performance optimizations (indexes, WAL mode)
 
 - 🚧 **Phase 5, 7-8: Additional Features** - Not yet implemented
 
@@ -246,7 +247,7 @@ Start a new story session.
 ```json
 {
   "player_name": "Alex",
-  "age_range": "6-8",
+  "age_range": "8-10",
   "theme": "space_adventure"
 }
 ```
