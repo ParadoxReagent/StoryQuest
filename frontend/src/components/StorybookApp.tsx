@@ -9,6 +9,9 @@ import { toast, Toaster } from 'sonner';
 import { generateThemes, startStoryStream, continueStoryStream } from '../services/api';
 import { TTSPlayer, initialTTSState, type TTSPlaybackState } from '../services/tts';
 import type { StoryResponse, ThemeOption } from '../types/api';
+import { useAchievements } from '../achievements/useAchievements';
+import { AchievementTrigger } from '../achievements/AchievementTrigger';
+import { AchievementCollection } from '../achievements/AchievementCollection';
 
 // ============================================
 // TYPES
@@ -929,6 +932,10 @@ export const StorybookApp = () => {
   const [streamingText, setStreamingText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
 
+  // Achievements
+  const [showAchievements, setShowAchievements] = useState(false);
+  const achievements = useAchievements();
+
   // Performance: Throttle streaming updates to reduce re-renders
   const streamingBufferRef = useRef('');
   const lastUpdateTimeRef = useRef(0);
@@ -1054,6 +1061,10 @@ export const StorybookApp = () => {
           setHistory([{ scene_text: finalSceneText || accumulatedText, turn_number: 0 }]);
           // Now transition to playing state with the story data ready
           setBookState('playing');
+
+          // Track achievement: story started
+          const selectedThemeData = themes.find(t => t.id === selectedTheme);
+          achievements.trackStoryStarted(selectedThemeData?.name || selectedTheme || '', ageRange);
         } else {
           // No valid response - go back to theme selection
           console.error('No valid story response received');
@@ -1069,7 +1080,7 @@ export const StorybookApp = () => {
         setIsStreaming(false);
       }
     }, 800);
-  }, [selectedTheme, themes, playerName, ageRange]);
+  }, [selectedTheme, themes, playerName, ageRange, achievements]);
 
   // Handle choice selection
   const handleChoice = useCallback(async (choice: { choice_id: string; text: string }) => {
@@ -1151,6 +1162,14 @@ export const StorybookApp = () => {
         setStory(response);
         // Add new scene to history
         setHistory((prev) => [...prev, { scene_text: finalSceneText || accumulatedText, turn_number: prev.length }]);
+
+        // Track achievement: choice made
+        achievements.trackChoiceMade(finalMetadata.turns || 0);
+
+        // Track achievement: story finished
+        if (finalMetadata.is_finished) {
+          achievements.trackStoryFinished(finalMetadata.turns || 0);
+        }
       }
     } catch (error) {
       console.error('Failed to continue story:', error);
@@ -1159,7 +1178,7 @@ export const StorybookApp = () => {
       setIsLoading(false);
       setIsStreaming(false);
     }
-  }, [story]);
+  }, [story, achievements]);
 
   // Handle custom input
   const handleCustomInput = useCallback(async (input: string) => {
@@ -1240,6 +1259,15 @@ export const StorybookApp = () => {
         setStory(response);
         // Add new scene to history
         setHistory((prev) => [...prev, { scene_text: finalSceneText || accumulatedText, turn_number: prev.length }]);
+
+        // Track achievements: custom input used and choice made
+        achievements.trackCustomInput();
+        achievements.trackChoiceMade(finalMetadata.turns || 0);
+
+        // Track achievement: story finished
+        if (finalMetadata.is_finished) {
+          achievements.trackStoryFinished(finalMetadata.turns || 0);
+        }
       }
     } catch (error) {
       console.error('Failed to continue story:', error);
@@ -1248,7 +1276,7 @@ export const StorybookApp = () => {
       setIsLoading(false);
       setIsStreaming(false);
     }
-  }, [story]);
+  }, [story, achievements]);
 
   // Handle starting a new story
   const handleNewStory = useCallback(() => {
@@ -1398,6 +1426,24 @@ export const StorybookApp = () => {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Achievement trigger button (fixed position) */}
+      <AchievementTrigger
+        unlockedCount={achievements.unlockedCount}
+        totalCount={achievements.totalCount}
+        onClick={() => {
+          setShowAchievements(true);
+          achievements.trackAchievementMenuOpen();
+        }}
+      />
+
+      {/* Achievement collection modal */}
+      <AchievementCollection
+        isOpen={showAchievements}
+        onClose={() => setShowAchievements(false)}
+        unlockedAchievements={achievements.state.unlocked}
+        onReset={achievements.resetAchievements}
+      />
     </div>
   );
 };
